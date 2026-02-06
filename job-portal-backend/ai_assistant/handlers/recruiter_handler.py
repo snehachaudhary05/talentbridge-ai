@@ -53,6 +53,14 @@ Additional context: {job_data.get('additional_context', 'N/A')}
             system_prompt=system_prompt
         )
 
+        # Check if AI response was successful
+        if not response.get('success', False):
+            error_msg = response.get('error', 'Unknown error occurred')
+            raise Exception(f"AI job description generation failed: {error_msg}")
+
+        if not response.get('content'):
+            raise Exception("AI returned empty response")
+
         return response['content']
 
     def generate_interview_questions(self, role: str, skills: str, count: int = 10) -> Dict:
@@ -95,6 +103,14 @@ Format the response as a numbered list."""
             messages=messages,
             system_prompt=system_prompt
         )
+
+        # Check if AI response was successful
+        if not response.get('success', False):
+            error_msg = response.get('error', 'Unknown error occurred')
+            raise Exception(f"AI question generation failed: {error_msg}")
+
+        if not response.get('content'):
+            raise Exception("AI returned empty response")
 
         return {
             'role': role,
@@ -173,6 +189,14 @@ Use clear headers, bullet points, and emojis for visual appeal. Be thorough and 
             messages=messages,
             system_prompt=system_prompt
         )
+
+        # Check if AI response was successful
+        if not response.get('success', False):
+            error_msg = response.get('error', 'Unknown error occurred')
+            raise Exception(f"AI analysis failed: {error_msg}")
+
+        if not response.get('content'):
+            raise Exception("AI returned empty response")
 
         return {
             'job_requirements': job_requirements,
