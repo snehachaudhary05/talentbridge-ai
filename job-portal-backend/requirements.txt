@@ -1,0 +1,30 @@
+# Core Django
+Django>=4.2,<5.0
+django-environ>=0.11.0
+
+# Django REST Framework
+djangorestframework>=3.14.0
+djangorestframework-simplejwt>=5.3.0
+
+# AI Providers (OPTIONAL - System works without these using FREE mock AI)
+# anthropic>=0.18.0        # Uncomment for Claude AI (requires API key)
+# openai>=1.12.0           # Uncomment for OpenAI GPT (requires API key)
+
+# Database
+psycopg2-binary>=2.9.9   # PostgreSQL (optional, for production)
+
+# Utilities
+python-dotenv>=1.0.0     # Environment variable management
+requests>=2.31.0         # HTTP requests
+
+# CORS Headers (for frontend integration)
+django-cors-headers>=4.3.0
+
+# Production server
+gunicorn>=21.2.0         # WSGI server
+whitenoise>=6.6.0        # Static file serving
+
+# Development tools (optional)
+ipython>=8.20.0          # Better shell
+black>=24.1.0            # Code formatter
+flake8>=7.0.0            # Linter
