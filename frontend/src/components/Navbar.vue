@@ -40,7 +40,7 @@
             </svg>
             Interviews
           </router-link>
-          <router-link v-if="authStore.isAuthenticated" to="/ai-assistant" class="nav-link-highlight">
+          <router-link v-if="authStore.isAuthenticated" to="/ai-assistant" class="nav-link">
             <svg class="w-4 h-4 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
             </svg>
@@ -178,12 +178,11 @@
             Interviews
           </router-link>
 
-          <router-link v-if="authStore.isAuthenticated" to="/ai-assistant" class="mobile-nav-item-highlight" @click="showMobileMenu = false">
+          <router-link v-if="authStore.isAuthenticated" to="/ai-assistant" class="mobile-nav-item" @click="showMobileMenu = false">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
             </svg>
             AI Assistant
-            <span class="badge badge-primary ml-auto">AI</span>
           </router-link>
 
           <router-link v-if="authStore.isAuthenticated" to="/profile" class="mobile-nav-item" @click="showMobileMenu = false">
@@ -265,6 +264,11 @@ const handleLogout = () => {
   @apply text-gray-700 hover:text-primary-600 font-medium transition-colors duration-200 text-sm xl:text-base;
 }
 
+.nav-link.router-link-active,
+.nav-link.router-link-exact-active {
+  @apply text-primary-600 font-semibold;
+}
+
 .nav-link-highlight {
   @apply text-primary-600 hover:text-primary-700 font-semibold transition-colors duration-200 bg-primary-50 px-3 py-1.5 rounded-lg text-sm xl:text-base;
 }
@@ -277,6 +281,11 @@ const handleLogout = () => {
 /* Mobile Nav Links */
 .mobile-nav-item {
   @apply flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors duration-150 font-medium;
+}
+
+.mobile-nav-item.router-link-active,
+.mobile-nav-item.router-link-exact-active {
+  @apply text-primary-600 bg-primary-50 font-semibold;
 }
 
 .mobile-nav-item-highlight {
