@@ -136,7 +136,7 @@ watch(() => props.show, (newVal) => {
 
 const loadCandidateProfile = async () => {
   try {
-    const response = await axios.get('/api/accounts/profile/')
+    const response = await axios.get('/accounts/profile/')
     if (response.data.length > 0) {
       const profile = response.data[0]
       form.value.first_name = profile.first_name || ''
@@ -185,7 +185,7 @@ const submitApplication = async () => {
     if (form.value.cover_letter) formData.append('cover_letter', form.value.cover_letter)
     if (form.value.resume) formData.append('resume', form.value.resume)
 
-    await axios.post('/api/jobs/applications/', formData, {
+    await axios.post('/jobs/applications/', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }

@@ -273,7 +273,7 @@ const submitJob = async () => {
   }
 
   try {
-    const response = await axios.post('/api/jobs/jobs/', jobForm.value)
+    const response = await axios.post('/jobs/jobs/', jobForm.value)
     alert('Job posted successfully!')
     router.push('/dashboard')
   } catch (err) {

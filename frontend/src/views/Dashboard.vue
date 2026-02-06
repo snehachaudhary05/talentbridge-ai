@@ -334,23 +334,23 @@ const fetchStats = async () => {
   try {
     if (authStore.isRecruiter) {
       // Recruiter stats
-      const appsResponse = await axios.get('/api/jobs/applications/')
+      const appsResponse = await axios.get('/jobs/applications/')
       stats.value.applications = appsResponse.data.length
       applications.value = appsResponse.data.slice(0, 5) // Show latest 5
 
-      const jobsResponse = await axios.get('/api/jobs/jobs/')
+      const jobsResponse = await axios.get('/jobs/jobs/')
       const jobs = jobsResponse.data
       stats.value.jobsPosted = jobs.length
       stats.value.activeJobs = jobs.filter(job => job.status === 'published').length
       stats.value.draftJobs = jobs.filter(job => job.status === 'draft').length
     } else {
       // Candidate stats
-      const appsResponse = await axios.get('/api/jobs/applications/')
+      const appsResponse = await axios.get('/jobs/applications/')
       stats.value.applications = appsResponse.data.length
       applications.value = appsResponse.data // Store applications for display
 
       // Fetch total published jobs available for candidates
-      const totalJobsResponse = await axios.get('/api/jobs/jobs/')
+      const totalJobsResponse = await axios.get('/jobs/jobs/')
       stats.value.totalJobs = totalJobsResponse.data.length
     }
   } catch (error) {

@@ -114,7 +114,7 @@ const loading = ref(true)
 const fetchSavedJobs = async () => {
   loading.value = true
   try {
-    const response = await axios.get('/api/jobs/saved-jobs/')
+    const response = await axios.get('/jobs/saved-jobs/')
     console.log('Saved jobs response:', response.data)
     savedJobs.value = response.data
   } catch (error) {
@@ -127,7 +127,7 @@ const fetchSavedJobs = async () => {
 
 const unsaveJob = async (savedJob) => {
   try {
-    await axios.post('/api/jobs/saved-jobs/unsave_job/', { job_id: savedJob.job })
+    await axios.post('/jobs/saved-jobs/unsave_job/', { job_id: savedJob.job })
     // Remove from list
     savedJobs.value = savedJobs.value.filter(sj => sj.id !== savedJob.id)
   } catch (error) {

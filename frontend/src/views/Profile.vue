@@ -174,7 +174,7 @@ const fetchProfile = async () => {
   if (!authStore.isCandidate) return
 
   try {
-    const response = await axios.get('/api/accounts/profile/me/')
+    const response = await axios.get('/accounts/profile/me/')
     profile.value = response.data
 
     // Populate form
@@ -217,7 +217,7 @@ const uploadResume = async () => {
   })
 
   try {
-    const response = await axios.post('/api/accounts/profile/upload_resume/', formData, {
+    const response = await axios.post('/accounts/profile/upload_resume/', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
@@ -249,7 +249,7 @@ const updateProfile = async () => {
 
 const downloadResume = async () => {
   try {
-    const response = await axios.get('/api/accounts/profile/download_resume/', {
+    const response = await axios.get('/accounts/profile/download_resume/', {
       responseType: 'blob'
     })
 

@@ -278,7 +278,7 @@ const fetchJob = async () => {
 
 const checkIfApplied = async () => {
   try {
-    const response = await axios.get('/api/jobs/applications/')
+    const response = await axios.get('/jobs/applications/')
     hasApplied.value = response.data.some(app => app.job === job.value.id)
   } catch (error) {
     console.error('Error checking application status:', error)
