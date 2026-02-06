@@ -2,8 +2,6 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import axios from 'axios'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
-
 export const useNotificationStore = defineStore('notifications', () => {
   const notifications = ref([])
   const unreadCount = ref(0)
@@ -24,7 +22,7 @@ export const useNotificationStore = defineStore('notifications', () => {
       const token = getAuthToken()
       if (!token) return
 
-      const response = await axios.get(`${API_URL}/notifications/unread_count/`, {
+      const response = await axios.get('/notifications/unread_count/', {
         headers: { Authorization: token }
       })
       unreadCount.value = response.data.count
@@ -40,7 +38,7 @@ export const useNotificationStore = defineStore('notifications', () => {
       const token = getAuthToken()
       if (!token) return
 
-      const response = await axios.get(`${API_URL}/notifications/recent/`, {
+      const response = await axios.get('/notifications/recent/', {
         headers: { Authorization: token }
       })
       notifications.value = response.data
@@ -58,7 +56,7 @@ export const useNotificationStore = defineStore('notifications', () => {
       const token = getAuthToken()
       if (!token) return
 
-      const response = await axios.get(`${API_URL}/notifications/`, {
+      const response = await axios.get('/notifications/', {
         headers: { Authorization: token }
       })
       notifications.value = response.data
@@ -77,7 +75,7 @@ export const useNotificationStore = defineStore('notifications', () => {
       const token = getAuthToken()
       if (!token) return
 
-      await axios.post(`${API_URL}/notifications/${notificationId}/mark_as_read/`, {}, {
+      await axios.post(`/notifications/${notificationId}/mark_as_read/`, {}, {
         headers: { Authorization: token }
       })
 
@@ -98,7 +96,7 @@ export const useNotificationStore = defineStore('notifications', () => {
       const token = getAuthToken()
       if (!token) return
 
-      await axios.post(`${API_URL}/notifications/mark_all_as_read/`, {}, {
+      await axios.post('/notifications/mark_all_as_read/', {}, {
         headers: { Authorization: token }
       })
 
