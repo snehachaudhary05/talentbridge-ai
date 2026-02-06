@@ -122,6 +122,10 @@ SIMPLE_JWT = {
 
 # ✅ CORS Settings
 CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:5173').split(',')
+# Allow all Vercel preview deployments
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r'^https://.*\.vercel\.app$',  # Allow all Vercel preview URLs
+]
 CORS_ALLOW_CREDENTIALS = True
 
 # ✅ Email Configuration (Resend)
