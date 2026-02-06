@@ -2,6 +2,8 @@
 
 A modern, full-stack job portal application with AI-powered candidate screening, built with Django REST Framework and Vue 3.
 
+🚀 **[Live Demo](#)** | 📖 [Documentation](#setup-instructions) | ⭐ [Features](#features)
+
 ## Features
 
 ### For Candidates
