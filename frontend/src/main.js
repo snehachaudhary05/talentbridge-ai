@@ -5,6 +5,9 @@ import router from './router'
 import './style.css'
 import axios from 'axios'
 
+// Configure axios base URL
+axios.defaults.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
+
 const pinia = createPinia()
 const app = createApp(App)
 
