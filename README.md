@@ -2,7 +2,7 @@
 
 A modern, full-stack job portal application with AI-powered candidate screening, built with Django REST Framework and Vue 3.
 
-🚀 **[Live Demo](#)** | 📖 [Documentation](#setup-instructions) | ⭐ [Features](#features)
+🚀 **[Live Demo](https://talentbridge-ai.vercel.app)** | 🔗 [Backend API](https://talentbridge-ai.onrender.com) | 📖 [Documentation](#setup-instructions) | ⭐ [Features](#features)
 
 ## Features
 
