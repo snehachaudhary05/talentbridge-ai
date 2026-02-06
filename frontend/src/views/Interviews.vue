@@ -348,7 +348,7 @@ const pastInterviews = computed(() => {
 const fetchInterviews = async () => {
   loading.value = true
   try {
-    const response = await axios.get('/api/jobs/interviews/')
+    const response = await axios.get('/jobs/interviews/')
     interviews.value = response.data
 
     // Fetch applications for recruiters
@@ -365,7 +365,7 @@ const fetchInterviews = async () => {
 
 const fetchApplications = async () => {
   try {
-    const response = await axios.get('/api/jobs/applications/')
+    const response = await axios.get('/jobs/applications/')
     applications.value = response.data
   } catch (error) {
     console.error('Error fetching applications:', error)

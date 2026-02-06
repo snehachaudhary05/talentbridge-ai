@@ -223,7 +223,7 @@ const handleSubmit = async () => {
       status: 'scheduled'
     }
 
-    await axios.post('/api/jobs/interviews/', payload)
+    await axios.post('/jobs/interviews/', payload)
 
     // Success - emit event and close modal
     emit('scheduled')

@@ -756,7 +756,7 @@ const analyzeResume = async () => {
       return
     }
 
-    const response = await axios.post('/api/ai/candidate/analyze_resume/', formData, {
+    const response = await axios.post('/ai/candidate/analyze_resume/', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
@@ -783,7 +783,7 @@ const findMatchingJobs = async () => {
       skills = skillsInput.value.split(/\s+/).map(s => s.trim()).filter(s => s)
     }
 
-    const response = await axios.post('/api/ai/candidate/suggest_jobs/', {
+    const response = await axios.post('/ai/candidate/suggest_jobs/', {
       skills: skills,
       limit: 5
     })
@@ -807,7 +807,7 @@ const getSkillRecommendations = async () => {
       skills = currentSkills.value.split(/\s+/).map(s => s.trim()).filter(s => s)
     }
 
-    const response = await axios.post('/api/ai/candidate/recommend_skills/', {
+    const response = await axios.post('/ai/candidate/recommend_skills/', {
       current_skills: skills,
       target_role: targetRole.value
     })
@@ -824,7 +824,7 @@ const generateJobDescription = async () => {
   loading.value = true
   result.value = null
   try {
-    const response = await axios.post('/api/ai/recruiter/generate_job_description/', {
+    const response = await axios.post('/ai/recruiter/generate_job_description/', {
       position: jobDescInput.value.title,
       company: jobDescInput.value.company,
       requirements: `${jobDescInput.value.experience ? jobDescInput.value.experience + '+ years experience, ' : ''}${jobDescInput.value.skills}`
@@ -867,7 +867,7 @@ const screenCandidate = async () => {
       return
     }
 
-    const response = await axios.post('/api/ai/recruiter/screen_candidate/', formData, {
+    const response = await axios.post('/ai/recruiter/screen_candidate/', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
@@ -896,7 +896,7 @@ const generateInterviewQuestions = async () => {
   loading.value = true
   result.value = null
   try {
-    const response = await axios.post('/api/ai/recruiter/interview_questions/', {
+    const response = await axios.post('/ai/recruiter/interview_questions/', {
       role: interviewInput.value.role,
       skills: interviewInput.value.skills,
       count: interviewInput.value.count

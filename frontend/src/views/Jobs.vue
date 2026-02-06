@@ -304,7 +304,7 @@ const filtersApplied = ref(false)
 
 const fetchFilterOptions = async () => {
   try {
-    const response = await axios.get('/api/jobs/jobs/filter_options/')
+    const response = await axios.get('/jobs/jobs/filter_options/')
     filterOptions.value = response.data
 
     // Don't initialize slider values - let them stay null until user interacts
@@ -360,7 +360,7 @@ const fetchJobs = async () => {
       }
     }
 
-    const response = await axios.get('/api/jobs/jobs/', { params })
+    const response = await axios.get('/jobs/jobs/', { params })
     jobs.value = response.data
   } catch (error) {
     console.error('Error fetching jobs:', error)
@@ -412,7 +412,7 @@ const formatJobType = (type) => {
 const fetchAppliedJobs = async () => {
   if (authStore.isCandidate) {
     try {
-      const response = await axios.get('/api/jobs/applications/')
+      const response = await axios.get('/jobs/applications/')
       appliedJobIds.value = new Set(response.data.map(app => app.job))
     } catch (error) {
       console.error('Error fetching applied jobs:', error)
@@ -428,11 +428,11 @@ const toggleSaveJob = async (job) => {
   try {
     if (job.is_saved) {
       // Unsave the job
-      await axios.post('/api/jobs/saved-jobs/unsave_job/', { job_id: job.id })
+      await axios.post('/jobs/saved-jobs/unsave_job/', { job_id: job.id })
       job.is_saved = false
     } else {
       // Save the job
-      await axios.post('/api/jobs/saved-jobs/save_job/', { job_id: job.id })
+      await axios.post('/jobs/saved-jobs/save_job/', { job_id: job.id })
       job.is_saved = true
     }
   } catch (error) {
