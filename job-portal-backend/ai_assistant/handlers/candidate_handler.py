@@ -41,12 +41,24 @@ class CandidateHandler:
         # Check if response has content
         content = response.get('content', '').strip()
         if not content:
-            # Return a helpful error message
+            # Return a helpful error message with more context
+            print(f"[ERROR] AI returned empty response. Resume length: {len(resume_text)}, Response: {response}")
             return {
                 'analysis': {
                     'error': 'AI returned empty response',
-                    'message': 'The AI service did not return any analysis. Please try again.',
-                    'resume_length': len(resume_text)
+                    'message': 'The AI service did not return any analysis. This usually happens when the input is too large or complex.',
+                    'resume_length': len(resume_text),
+                    'suggestions': [
+                        f'Your resume is {len(resume_text):,} characters. Try reducing it to under 10,000 characters.',
+                        'Remove any formatting, tables, or special characters',
+                        'Ensure your resume is plain text, not a scanned image',
+                        'Try copy-pasting just the text content instead of uploading a file'
+                    ],
+                    'debug_info': {
+                        'response_time_ms': response.get('response_time_ms', 0),
+                        'ai_provider': 'openrouter/gemma-3-12b-it:free',
+                        'note': 'Free AI models may struggle with large inputs. Consider using a smaller resume or upgrading to a paid AI service.'
+                    }
                 },
                 'usage': response.get('usage', {}),
                 'response_time_ms': response.get('response_time_ms', 0)

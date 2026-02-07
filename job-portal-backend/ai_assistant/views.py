@@ -147,11 +147,44 @@ class CandidateAIViewSet(viewsets.ViewSet):
                 # Extract text from uploaded file
                 from .utils.file_parser import extract_text_from_file
                 resume_text = extract_text_from_file(resume_file)
+                print(f"[DEBUG] Extracted text from file: {resume_file.name}, size: {len(resume_text)} chars")
 
             # Validate that we have resume text
             if not resume_text or len(resume_text.strip()) < 50:
                 return Response(
                     {'error': 'Resume text is too short or empty. Please provide a complete resume.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Log resume size for debugging
+            resume_size = len(resume_text)
+            word_count = len(resume_text.split())
+            print(f"[DEBUG] Resume size: {resume_size:,} chars ({resume_size/1024:.1f}KB), {word_count:,} words")
+            print(f"[DEBUG] First 200 chars: {resume_text[:200]}")
+            print(f"[DEBUG] Last 200 chars: {resume_text[-200:]}")
+
+            # Validate resume size (prevent oversized resumes that cause AI to fail)
+            MAX_RESUME_SIZE = 15000  # ~15KB, roughly 3-4 page resume
+            if resume_size > MAX_RESUME_SIZE:
+                print(f"[WARNING] Resume too large: {resume_size} > {MAX_RESUME_SIZE}")
+                return Response(
+                    {
+                        'error': 'Resume is too large',
+                        'message': f'Your resume is {resume_size:,} characters ({resume_size/1024:.1f}KB). Maximum allowed is {MAX_RESUME_SIZE/1024:.0f}KB.',
+                        'details': {
+                            'resume_size': resume_size,
+                            'max_allowed': MAX_RESUME_SIZE,
+                            'word_count': word_count,
+                            'first_100_chars': resume_text[:100],
+                            'last_100_chars': resume_text[-100:]
+                        },
+                        'suggestions': [
+                            'If you uploaded a PDF: Try saving it as plain text or copying the text directly',
+                            'Check if your resume has duplicate content or hidden formatting',
+                            'A typical 1-2 page resume should be 2,000-5,000 characters',
+                            'Your resume appears to be much longer than typical - verify the content'
+                        ]
+                    },
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
