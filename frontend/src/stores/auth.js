@@ -33,6 +33,60 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
+    async verifyOTP(email, otp) {
+      try {
+        const response = await axios.post('/accounts/verify-otp/', { email, otp })
+        return { success: true, data: response.data }
+      } catch (error) {
+        return {
+          success: false,
+          error: error.response?.data?.error || 'Invalid or expired OTP'
+        }
+      }
+    },
+
+    async resendOTP(email, purpose = 'registration') {
+      try {
+        await axios.post('/accounts/resend-otp/', { email, purpose })
+        return { success: true }
+      } catch (error) {
+        return { success: false, error: 'Failed to resend OTP' }
+      }
+    },
+
+    async requestLoginOTP(email) {
+      try {
+        await axios.post('/accounts/request-login-otp/', { email })
+        return { success: true }
+      } catch (error) {
+        return {
+          success: false,
+          error: error.response?.data?.error || 'Failed to send OTP'
+        }
+      }
+    },
+
+    async verifyLoginOTP(email, otp) {
+      try {
+        const response = await axios.post('/accounts/verify-login-otp/', { email, otp })
+        this.token = response.data.access
+        this.refreshToken = response.data.refresh
+        this.user = response.data.user
+
+        localStorage.setItem('token', this.token)
+        localStorage.setItem('refreshToken', this.refreshToken)
+        localStorage.setItem('user', JSON.stringify(this.user))
+
+        axios.defaults.headers.common['Authorization'] = `Bearer ${this.token}`
+        return { success: true }
+      } catch (error) {
+        return {
+          success: false,
+          error: error.response?.data?.error || 'Invalid or expired OTP'
+        }
+      }
+    },
+
     async login(email, password) {
       try {
         const response = await axios.post('/token/', {

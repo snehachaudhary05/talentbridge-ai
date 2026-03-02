@@ -15,11 +15,19 @@ services:
         sync: false
       - key: CORS_ALLOWED_ORIGINS
         sync: false
+      - key: AI_PROVIDER
+        value: openrouter
+      - key: GEMINI_API_KEY
+        sync: false
       - key: OPENROUTER_API_KEY
         sync: false
-      - key: RESEND_API_KEY
+      - key: EMAIL_HOST_USER
         sync: false
-      - key: EMAIL_FROM
+      - key: EMAIL_HOST_PASSWORD
         sync: false
+      - key: EMAIL_FROM_NAME
+        value: TalentBridge AI
       - key: FRONTEND_URL
+        sync: false
+      - key: DATABASE_URL
         sync: false

@@ -163,8 +163,8 @@ class CandidateAIViewSet(viewsets.ViewSet):
             print(f"[DEBUG] First 200 chars: {resume_text[:200]}")
             print(f"[DEBUG] Last 200 chars: {resume_text[-200:]}")
 
-            # Validate resume size (prevent oversized resumes that cause AI to fail)
-            MAX_RESUME_SIZE = 15000  # ~15KB, roughly 3-4 page resume
+            # Validate resume size (Gemini supports 1M token context, allow large resumes)
+            MAX_RESUME_SIZE = 100000  # ~100KB, supports very detailed multi-page resumes
             if resume_size > MAX_RESUME_SIZE:
                 print(f"[WARNING] Resume too large: {resume_size} > {MAX_RESUME_SIZE}")
                 return Response(

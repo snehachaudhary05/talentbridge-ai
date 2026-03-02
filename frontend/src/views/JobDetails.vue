@@ -33,7 +33,7 @@
             <svg class="w-5 h-5 mr-2 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
             </svg>
-            ${{ job.salary_min }} - ${{ job.salary_max }}
+            ₹{{ job.salary_min?.toLocaleString('en-IN') }} - ₹{{ job.salary_max?.toLocaleString('en-IN') }}
           </div>
         </div>
 
@@ -180,8 +180,8 @@
                 <div class="mt-3">
                   <label class="block text-sm font-medium text-gray-700 mb-1">Status:</label>
                   <select
-                    v-model="app.status"
-                    @change="updateApplicationStatus(app.id, app.status)"
+                    :value="app.status"
+                    @change="requestStatusChange(app, $event)"
                     class="block w-48 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                   >
                     <option value="applied">Applied</option>
@@ -227,6 +227,51 @@
       </div>
     </div>
 
+    <!-- Status Change Confirmation Modal -->
+    <div v-if="confirmModal.show" class="fixed inset-0 z-50 flex items-center justify-center px-4">
+      <div class="absolute inset-0 bg-black bg-opacity-50" @click="cancelStatusChange"></div>
+      <div class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="bg-yellow-100 p-2 rounded-full">
+            <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+            </svg>
+          </div>
+          <h3 class="text-lg font-bold text-gray-900">Confirm Status Change</h3>
+        </div>
+
+        <p class="text-gray-600 mb-2">
+          You are about to change the application status for
+          <strong class="text-gray-900">{{ confirmModal.candidateName }}</strong>:
+        </p>
+
+        <div class="flex items-center gap-3 bg-gray-50 rounded-lg p-3 mb-4">
+          <span class="px-2 py-1 bg-gray-200 text-gray-700 rounded text-sm font-medium">
+            {{ formatStatus(confirmModal.currentStatus) }}
+          </span>
+          <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+          <span :class="statusBadgeClass(confirmModal.pendingStatus)" class="px-2 py-1 rounded text-sm font-bold">
+            {{ formatStatus(confirmModal.pendingStatus) }}
+          </span>
+        </div>
+
+        <p class="text-sm text-blue-600 bg-blue-50 rounded-lg px-3 py-2 mb-6">
+          An email notification will be sent to the candidate about this status update.
+        </p>
+
+        <div class="flex gap-3">
+          <button @click="confirmStatusChange" class="flex-1 btn-primary">
+            Yes, Update Status
+          </button>
+          <button @click="cancelStatusChange" class="flex-1 btn-secondary">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Application Modal -->
     <ApplicationModal
       :show="showApplicationModal"
@@ -254,6 +299,13 @@ const loading = ref(true)
 const applications = ref([])
 const showApplicationModal = ref(false)
 const hasApplied = ref(false)
+const confirmModal = ref({
+  show: false,
+  app: null,
+  pendingStatus: '',
+  currentStatus: '',
+  candidateName: ''
+})
 
 const fetchJob = async () => {
   try {
@@ -335,17 +387,64 @@ const downloadResume = async (applicationId) => {
   }
 }
 
-const updateApplicationStatus = async (applicationId, newStatus) => {
+const statusLabels = {
+  applied: 'Applied', under_review: 'Under Review', shortlisted: 'Shortlisted',
+  oa_round: 'OA Round', tech_round: 'Tech Round', hr_round: 'HR Round',
+  offer_received: 'Offer Received', rejected: 'Rejected', accepted: 'Accepted'
+}
+
+const formatStatus = (status) => statusLabels[status] || status
+
+const statusBadgeClass = (status) => {
+  const classes = {
+    applied: 'bg-gray-100 text-gray-700',
+    under_review: 'bg-blue-100 text-blue-700',
+    shortlisted: 'bg-purple-100 text-purple-700',
+    oa_round: 'bg-yellow-100 text-yellow-700',
+    tech_round: 'bg-orange-100 text-orange-700',
+    hr_round: 'bg-indigo-100 text-indigo-700',
+    offer_received: 'bg-green-100 text-green-700',
+    rejected: 'bg-red-100 text-red-700',
+    accepted: 'bg-green-200 text-green-800'
+  }
+  return classes[status] || 'bg-gray-100 text-gray-700'
+}
+
+const requestStatusChange = (app, event) => {
+  const newStatus = event.target.value
+  // Revert the select visually — update only after confirmation
+  event.target.value = app.status
+  if (newStatus === app.status) return
+
+  const profile = app.candidate_profile
+  const candidateName = profile?.first_name
+    ? `${profile.first_name} ${profile.last_name || ''}`.trim()
+    : app.candidate_email
+
+  confirmModal.value = {
+    show: true,
+    app,
+    pendingStatus: newStatus,
+    currentStatus: app.status,
+    candidateName
+  }
+}
+
+const confirmStatusChange = async () => {
+  const { app, pendingStatus } = confirmModal.value
+  confirmModal.value.show = false
   try {
-    await axios.patch(`/api/jobs/applications/${applicationId}/update_status/`, {
-      status: newStatus
+    await axios.patch(`/api/jobs/applications/${app.id}/update_status/`, {
+      status: pendingStatus
     })
-    alert('Application status updated successfully!')
+    app.status = pendingStatus
   } catch (error) {
     alert('Error updating status: ' + (error.response?.data?.error || error.message))
-    // Refresh to revert the change if it failed
-    fetchApplications()
   }
+}
+
+const cancelStatusChange = () => {
+  confirmModal.value.show = false
 }
 
 onMounted(() => {

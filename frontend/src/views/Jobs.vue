@@ -71,28 +71,28 @@
         <!-- Salary Range -->
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">
-            Min Salary: ${{ filters.salary_min !== null ? filters.salary_min.toLocaleString() : 'Any' }}
+            Min Salary: ₹{{ filters.salary_min !== null ? filters.salary_min.toLocaleString('en-IN') : 'Any' }}
           </label>
           <input
             v-model.number="filters.salary_min"
             type="range"
             :min="filterOptions.salary_range.min"
             :max="filterOptions.salary_range.max"
-            :step="5000"
+            :step="50000"
             class="w-full"
           />
         </div>
 
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">
-            Max Salary: ${{ filters.salary_max !== null ? filters.salary_max.toLocaleString() : 'Any' }}
+            Max Salary: ₹{{ filters.salary_max !== null ? filters.salary_max.toLocaleString('en-IN') : 'Any' }}
           </label>
           <input
             v-model.number="filters.salary_max"
             type="range"
             :min="filterOptions.salary_range.min"
             :max="filterOptions.salary_range.max"
-            :step="5000"
+            :step="50000"
             class="w-full"
           />
         </div>
@@ -194,7 +194,7 @@
                   <svg class="w-4 h-4 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                   </svg>
-                  ${{ job.salary_min.toLocaleString() }} - ${{ job.salary_max.toLocaleString() }}
+                  ₹{{ job.salary_min.toLocaleString('en-IN') }} - ₹{{ job.salary_max.toLocaleString('en-IN') }}
                 </span>
               </div>
             </div>
@@ -254,7 +254,7 @@
                   <svg class="w-4 h-4 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                   </svg>
-                  ${{ job.salary_min.toLocaleString() }} - ${{ job.salary_max.toLocaleString() }}
+                  ₹{{ job.salary_min.toLocaleString('en-IN') }} - ₹{{ job.salary_max.toLocaleString('en-IN') }}
                 </span>
               </div>
             </div>
@@ -295,7 +295,7 @@ const filterOptions = ref({
   companies: [],
   locations: [],
   job_types: [],
-  salary_range: { min: 0, max: 200000 },
+  salary_range: { min: 0, max: 10000000 },
   experience_range: { min: 0, max: 20 }
 })
 

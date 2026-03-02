@@ -7,6 +7,7 @@ from typing import List, Dict, Optional
 from django.conf import settings
 from ..config import (
     AI_PROVIDER,
+    GEMINI_API_KEY,
     ANTHROPIC_API_KEY,
     OPENAI_API_KEY,
     OPENROUTER_API_KEY,
@@ -37,7 +38,9 @@ class AIClient:
             return
 
         # Initialize the appropriate client
-        if provider == 'claude':
+        if provider == 'gemini':
+            self._init_gemini_client()
+        elif provider == 'claude':
             self._init_claude_client()
         elif provider == 'openai':
             self._init_openai_client()
@@ -45,6 +48,24 @@ class AIClient:
             self._init_openrouter_client()
         else:
             raise ValueError(f"Unsupported AI provider: {provider}")
+
+    def _init_gemini_client(self):
+        """Initialize Google Gemini client"""
+        if not GEMINI_API_KEY:
+            raise ValueError(
+                "GEMINI_API_KEY not found. "
+                "Please set it in your environment variables or .env file"
+            )
+        try:
+            from google import genai
+            self.client = genai.Client(api_key=GEMINI_API_KEY)
+            self.model = 'gemini-flash-latest'
+            print(f"[INFO] Using Google Gemini model: {self.model}")
+        except ImportError:
+            raise ImportError(
+                "google-genai package not installed. "
+                "Install it with: pip install google-genai"
+            )
 
     def _init_claude_client(self):
         """Initialize Anthropic Claude client"""
@@ -136,7 +157,11 @@ class AIClient:
                     messages, system_prompt, max_tokens, temperature
                 )
 
-            if self.provider == 'claude':
+            if self.provider == 'gemini':
+                result = self._generate_gemini_response(
+                    messages, system_prompt, max_tokens, temperature
+                )
+            elif self.provider == 'claude':
                 result = self._generate_claude_response(
                     messages, system_prompt, max_tokens, temperature
                 )
@@ -165,6 +190,45 @@ class AIClient:
                 'success': False,
                 'response_time_ms': response_time_ms
             }
+
+    def _generate_gemini_response(
+        self,
+        messages: List[Dict[str, str]],
+        system_prompt: Optional[str],
+        max_tokens: int,
+        temperature: float
+    ) -> Dict:
+        """Generate response using Google Gemini API"""
+        from google import genai
+        from google.genai import types
+
+        # Build a single prompt: system + all user messages combined
+        parts = []
+        if system_prompt:
+            parts.append(system_prompt)
+        for msg in messages:
+            parts.append(msg['content'])
+        full_prompt = "\n\n".join(parts)
+
+        config = types.GenerateContentConfig(
+            max_output_tokens=max_tokens,
+            temperature=temperature
+        )
+
+        response = self.client.models.generate_content(
+            model=self.model,
+            contents=full_prompt,
+            config=config
+        )
+
+        return {
+            'content': response.text,
+            'usage': {
+                'input_tokens': response.usage_metadata.prompt_token_count,
+                'output_tokens': response.usage_metadata.candidates_token_count
+            },
+            'model': self.model,
+        }
 
     def _generate_claude_response(
         self,
@@ -298,13 +362,33 @@ class AIClient:
         return result.get('content', '')
 
 
-# Singleton instance
+# Singleton instances
 _ai_client_instance = None
+_gemini_client_instance = None
 
 
 def get_ai_client() -> AIClient:
-    """Get or create AI client instance"""
+    """Get or create default AI client instance (OpenRouter)"""
     global _ai_client_instance
     if _ai_client_instance is None:
         _ai_client_instance = AIClient()
     return _ai_client_instance
+
+
+def get_gemini_client() -> AIClient:
+    """
+    Get a Gemini client for heavy analysis tasks (ATS score, candidate screening).
+    Falls back to the default AI client if GEMINI_API_KEY is not configured.
+    """
+    global _gemini_client_instance
+    if _gemini_client_instance is None:
+        if GEMINI_API_KEY:
+            try:
+                _gemini_client_instance = AIClient(provider='gemini')
+            except Exception as e:
+                print(f"[WARNING] Failed to init Gemini client: {e}. Falling back to default.")
+                _gemini_client_instance = get_ai_client()
+        else:
+            print("[INFO] GEMINI_API_KEY not set. Using default AI client for analysis.")
+            _gemini_client_instance = get_ai_client()
+    return _gemini_client_instance

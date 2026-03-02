@@ -52,3 +52,11 @@ class CandidateProfileSerializer(serializers.ModelSerializer):
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     """Custom JWT serializer that uses email instead of username"""
     username_field = 'email'
+
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        if not self.user.is_verified:
+            raise serializers.ValidationError(
+                {'detail': 'Email not verified. Please check your email for the OTP.'}
+            )
+        return data

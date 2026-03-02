@@ -1,5 +1,12 @@
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
+from django.utils import timezone
+from datetime import timedelta
+import random
+
+
+def generate_otp():
+    return str(random.randint(100000, 999999))
 
 
 class UserManager(BaseUserManager):
@@ -31,6 +38,7 @@ class User(AbstractUser):
     username = None  # Remove username field
     email = models.EmailField(unique=True)
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='candidate')
+    is_verified = models.BooleanField(default=False)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
@@ -81,3 +89,23 @@ class CandidateProfile(models.Model):
 
     def __str__(self):
         return f"{self.user.email}'s Profile"
+
+
+class OTPVerification(models.Model):
+    PURPOSE_CHOICES = [
+        ('registration', 'Registration'),
+        ('login', 'Login'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='otps')
+    otp_code = models.CharField(max_length=6)
+    purpose = models.CharField(max_length=20, choices=PURPOSE_CHOICES)
+    is_used = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+
+    def is_valid(self):
+        return not self.is_used and self.expires_at > timezone.now()
+
+    def __str__(self):
+        return f"OTP for {self.user.email} ({self.purpose})"

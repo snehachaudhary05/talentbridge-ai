@@ -135,29 +135,31 @@
           <div class="space-y-4">
             <div class="grid md:grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Minimum Salary ($)</label>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Minimum Salary (₹)</label>
                 <input
                   v-model.number="jobForm.salary_min"
                   type="number"
                   class="input-field"
-                  placeholder="e.g., 50000"
+                  placeholder="e.g., 500000"
                   min="0"
-                  step="1000"
+                  max="100000000"
+                  step="10000"
                 />
-                <p class="text-sm text-gray-500 mt-1">Annual salary in USD</p>
+                <p class="text-sm text-gray-500 mt-1">Annual salary in INR</p>
               </div>
 
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Maximum Salary ($)</label>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Maximum Salary (₹)</label>
                 <input
                   v-model.number="jobForm.salary_max"
                   type="number"
                   class="input-field"
-                  placeholder="e.g., 100000"
+                  placeholder="e.g., 1000000"
                   min="0"
-                  step="1000"
+                  max="100000000"
+                  step="10000"
                 />
-                <p class="text-sm text-gray-500 mt-1">Annual salary in USD</p>
+                <p class="text-sm text-gray-500 mt-1">Annual salary in INR</p>
               </div>
             </div>
 
@@ -273,7 +275,11 @@ const submitJob = async () => {
   }
 
   try {
-    const response = await axios.post('/jobs/jobs/', jobForm.value)
+    const payload = { ...jobForm.value }
+    if (payload.deadline) {
+      payload.deadline = `${payload.deadline}T23:59:59Z`
+    }
+    const response = await axios.post('/jobs/jobs/', payload)
     alert('Job posted successfully!')
     router.push('/dashboard')
   } catch (err) {

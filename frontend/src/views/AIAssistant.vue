@@ -1,420 +1,328 @@
 <template>
-  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- Toast Notification -->
+    <transition name="toast">
+      <div v-if="toast.show"
+           :class="['fixed top-4 right-4 z-50 flex items-center gap-3 px-5 py-4 rounded-xl shadow-2xl text-white text-sm font-medium',
+                    toast.type === 'success' ? 'bg-green-600' : 'bg-red-600']">
+        <svg v-if="toast.type === 'success'" class="w-5 h-5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+        </svg>
+        <svg v-else class="w-5 h-5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+        </svg>
+        {{ toast.message }}
+      </div>
+    </transition>
+
+    <!-- Page Header -->
     <div class="mb-8">
-      <h1 class="text-4xl font-bold text-gray-900 mb-4">AI Assistant</h1>
-      <p class="text-xl text-gray-600">
-        {{ authStore.isRecruiter ? 'AI-powered tools for recruitment' : 'Get AI-powered insights for your job search' }}
+      <h1 class="text-3xl font-bold text-gray-900 mb-2">AI Assistant</h1>
+      <p class="text-gray-500">
+        {{ authStore.isRecruiter ? 'AI-powered tools for smarter recruitment' : 'AI-powered insights for your job search' }}
       </p>
     </div>
 
-    <!-- Candidate Features -->
-    <div v-if="authStore.isCandidate" class="grid md:grid-cols-3 gap-6 mb-8">
-      <button
-        @click="activeTab = 'resume'"
-        :class="['card text-left', activeTab === 'resume' ? 'border-primary-500 border-2' : '']"
-      >
-        <div class="bg-primary-100 w-12 h-12 rounded-lg flex items-center justify-center mb-3">
-          <svg class="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-          </svg>
-        </div>
-        <h3 class="text-lg font-bold text-gray-900 mb-1">Resume Analysis</h3>
-        <p class="text-sm text-gray-600">Get feedback on your resume</p>
-      </button>
-
-      <button
-        @click="activeTab = 'matching'"
-        :class="['card text-left', activeTab === 'matching' ? 'border-primary-500 border-2' : '']"
-      >
-        <div class="bg-green-100 w-12 h-12 rounded-lg flex items-center justify-center mb-3">
-          <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
-          </svg>
-        </div>
-        <h3 class="text-lg font-bold text-gray-900 mb-1">Job Matching</h3>
-        <p class="text-sm text-gray-600">Find jobs that match your skills</p>
-      </button>
-
-      <button
-        @click="activeTab = 'skills'"
-        :class="['card text-left', activeTab === 'skills' ? 'border-primary-500 border-2' : '']"
-      >
-        <div class="bg-purple-100 w-12 h-12 rounded-lg flex items-center justify-center mb-3">
-          <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-          </svg>
-        </div>
-        <h3 class="text-lg font-bold text-gray-900 mb-1">Skill Recommendations</h3>
-        <p class="text-sm text-gray-600">Learn what skills to develop</p>
+    <!-- Candidate Tabs -->
+    <div v-if="authStore.isCandidate" class="flex flex-wrap gap-3 mb-6">
+      <button v-for="tab in candidateTabs" :key="tab.id"
+        @click="switchTab(tab.id)"
+        :class="['flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm transition-all',
+                 activeTab === tab.id
+                   ? 'bg-primary-600 text-white shadow-md'
+                   : 'bg-white text-gray-600 border border-gray-200 hover:border-primary-300 hover:text-primary-600']">
+        <span>{{ tab.icon }}</span>
+        {{ tab.label }}
       </button>
     </div>
 
-    <!-- Recruiter Features -->
-    <div v-if="authStore.isRecruiter" class="grid md:grid-cols-3 gap-6 mb-8">
-      <button
-        @click="activeTab = 'jobDescription'"
-        :class="['card text-left', activeTab === 'jobDescription' ? 'border-primary-500 border-2' : '']"
-      >
-        <div class="bg-primary-100 w-12 h-12 rounded-lg flex items-center justify-center mb-3">
-          <svg class="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-          </svg>
-        </div>
-        <h3 class="text-lg font-bold text-gray-900 mb-1">Generate Job Description</h3>
-        <p class="text-sm text-gray-600">AI-powered job posting creation</p>
-      </button>
-
-      <button
-        @click="activeTab = 'screening'"
-        :class="['card text-left', activeTab === 'screening' ? 'border-primary-500 border-2' : '']"
-      >
-        <div class="bg-green-100 w-12 h-12 rounded-lg flex items-center justify-center mb-3">
-          <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
-          </svg>
-        </div>
-        <h3 class="text-lg font-bold text-gray-900 mb-1">Screen Candidates</h3>
-        <p class="text-sm text-gray-600">AI-assisted candidate evaluation</p>
-      </button>
-
-      <button
-        @click="activeTab = 'interviews'"
-        :class="['card text-left', activeTab === 'interviews' ? 'border-primary-500 border-2' : '']"
-      >
-        <div class="bg-purple-100 w-12 h-12 rounded-lg flex items-center justify-center mb-3">
-          <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-          </svg>
-        </div>
-        <h3 class="text-lg font-bold text-gray-900 mb-1">Interview Questions</h3>
-        <p class="text-sm text-gray-600">Generate role-specific questions</p>
+    <!-- Recruiter Tabs -->
+    <div v-if="authStore.isRecruiter" class="flex flex-wrap gap-3 mb-6">
+      <button v-for="tab in recruiterTabs" :key="tab.id"
+        @click="switchTab(tab.id)"
+        :class="['flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm transition-all',
+                 activeTab === tab.id
+                   ? 'bg-primary-600 text-white shadow-md'
+                   : 'bg-white text-gray-600 border border-gray-200 hover:border-primary-300 hover:text-primary-600']">
+        <span>{{ tab.icon }}</span>
+        {{ tab.label }}
       </button>
     </div>
 
-    <!-- Candidate: Resume Analysis Tab -->
+    <!-- ==============================
+         CANDIDATE: RESUME ANALYSIS
+         ============================== -->
     <div v-if="authStore.isCandidate && activeTab === 'resume'" class="card">
-      <h2 class="text-2xl font-bold text-gray-900 mb-4">Resume Analysis</h2>
-      <p class="text-gray-600 mb-4">Upload your resume or paste the text for AI-powered analysis and feedback</p>
+      <h2 class="text-xl font-bold text-gray-900 mb-1">Resume Analysis</h2>
+      <p class="text-gray-500 text-sm mb-5">Upload your resume for AI-powered ATS scoring and feedback</p>
 
       <div class="space-y-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Upload Resume</label>
-          <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary-500 transition-colors">
-            <input
-              ref="resumeFileInput"
-              type="file"
-              accept=".pdf,.docx,.txt"
-              @change="handleResumeFileUpload"
-              class="hidden"
-            />
-            <button
-              type="button"
-              @click="$refs.resumeFileInput.click()"
-              class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-            >
-              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-              </svg>
-              Choose File
-            </button>
-            <p class="mt-2 text-sm text-gray-500">PDF, DOCX, or TXT (max 10MB)</p>
-            <p v-if="resumeFileName" class="mt-2 text-sm text-primary-600 font-medium">
-              Selected: {{ resumeFileName }}
-            </p>
+        <div class="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center hover:border-primary-400 transition-colors cursor-pointer bg-gray-50"
+             @click="$refs.resumeFileInput.click()">
+          <input ref="resumeFileInput" type="file" accept=".pdf,.docx,.txt" @change="handleResumeFileUpload" class="hidden" />
+          <div class="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-3">
+            <svg class="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+            </svg>
           </div>
+          <p class="text-sm font-medium text-gray-700">Click to upload resume</p>
+          <p class="text-xs text-gray-400 mt-1">PDF, DOCX, or TXT · max 10 MB</p>
+          <p v-if="resumeFileName" class="mt-2 text-sm text-primary-600 font-semibold">📄 {{ resumeFileName }}</p>
         </div>
-        <div class="text-center text-sm text-gray-500">OR</div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Paste Resume Text</label>
-          <textarea
-            v-model="resumeText"
-            rows="10"
-            class="input-field"
-            placeholder="Paste your resume text here..."
-          ></textarea>
+
+        <div class="relative flex items-center">
+          <div class="flex-grow border-t border-gray-200"></div>
+          <span class="mx-3 text-xs text-gray-400 uppercase tracking-widest">or</span>
+          <div class="flex-grow border-t border-gray-200"></div>
         </div>
+
+        <textarea v-model="resumeText" rows="8" class="input-field text-sm" placeholder="Paste your resume text here…"></textarea>
       </div>
-      <button @click="analyzeResume" :disabled="loading" class="btn-primary mt-4">
-        {{ loading ? 'Analyzing...' : 'Analyze Resume' }}
+
+      <button @click="analyzeResume" :disabled="loading" class="btn-primary mt-5 flex items-center gap-2">
+        <svg v-if="loading" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+        </svg>
+        {{ loading ? 'Analyzing…' : '✨ Analyze Resume' }}
       </button>
 
-      <!-- Resume Analysis Results -->
-      <div v-if="result && result.analysis" class="mt-6 space-y-6">
+      <!-- Resume Results -->
+      <div v-if="result && result.analysis" class="mt-8 space-y-6">
+
         <!-- ATS Score -->
-        <div v-if="result.analysis.ats_score" class="bg-white rounded-lg border border-gray-200 p-6">
-          <h3 class="text-xl font-bold text-gray-900 mb-4">ATS Compatibility Score</h3>
-          <div class="flex items-center space-x-4">
-            <div class="relative w-24 h-24">
-              <svg class="transform -rotate-90 w-24 h-24">
-                <circle cx="48" cy="48" r="40" stroke="#e5e7eb" stroke-width="8" fill="none" />
-                <circle cx="48" cy="48" r="40" :stroke="result.analysis.ats_score >= 80 ? '#10b981' : result.analysis.ats_score >= 60 ? '#f59e0b' : '#ef4444'"
+        <div v-if="result.analysis.ats_score" class="bg-gradient-to-br from-gray-50 to-white rounded-2xl border border-gray-200 p-6">
+          <h3 class="text-lg font-bold text-gray-900 mb-4">ATS Compatibility Score</h3>
+          <div class="flex items-center gap-6">
+            <div class="relative w-28 h-28 shrink-0">
+              <svg class="transform -rotate-90 w-28 h-28">
+                <circle cx="56" cy="56" r="46" stroke="#e5e7eb" stroke-width="8" fill="none"/>
+                <circle cx="56" cy="56" r="46"
+                        :stroke="result.analysis.ats_score >= 80 ? '#10b981' : result.analysis.ats_score >= 60 ? '#f59e0b' : '#ef4444'"
                         stroke-width="8" fill="none"
-                        :stroke-dasharray="251.2"
-                        :stroke-dashoffset="251.2 - (251.2 * result.analysis.ats_score / 100)" />
+                        stroke-linecap="round"
+                        :stroke-dasharray="289"
+                        :stroke-dashoffset="289 - (289 * atsScoreAnimated / 100)"
+                        style="transition: stroke-dashoffset 1.2s ease"/>
               </svg>
-              <div class="absolute top-0 left-0 w-24 h-24 flex items-center justify-center">
-                <span class="text-2xl font-bold">{{ result.analysis.ats_score }}</span>
+              <div class="absolute inset-0 flex flex-col items-center justify-center">
+                <span class="text-3xl font-extrabold leading-none">{{ atsScoreAnimated }}</span>
+                <span class="text-xs text-gray-400">/100</span>
               </div>
             </div>
-            <div class="flex-1">
-              <p class="text-gray-700" v-if="result.analysis.ats_explanation">{{ result.analysis.ats_explanation }}</p>
-              <p class="text-gray-700" v-else>
-                {{ result.analysis.ats_score >= 80 ? 'Excellent! Your resume is highly ATS-compatible.' :
-                   result.analysis.ats_score >= 60 ? 'Good, but there\'s room for improvement.' :
-                   'Needs improvement to pass ATS systems effectively.' }}
+            <div>
+              <span :class="['inline-block px-3 py-1 rounded-full text-sm font-semibold mb-2',
+                             result.analysis.ats_score >= 80 ? 'bg-green-100 text-green-700' :
+                             result.analysis.ats_score >= 60 ? 'bg-yellow-100 text-yellow-700' :
+                             'bg-red-100 text-red-700']">
+                {{ result.analysis.ats_score >= 80 ? 'Excellent' : result.analysis.ats_score >= 60 ? 'Good' : 'Needs Work' }}
+              </span>
+              <p class="text-gray-600 text-sm leading-relaxed">
+                {{ result.analysis.ats_explanation ||
+                   (result.analysis.ats_score >= 80 ? 'Your resume is highly ATS-compatible.' :
+                    result.analysis.ats_score >= 60 ? 'Good resume with room for improvement.' :
+                    'Needs improvement to pass ATS filters effectively.') }}
               </p>
             </div>
           </div>
         </div>
 
-        <!-- Extracted Information -->
-        <div class="bg-white rounded-lg border border-gray-200 p-6">
-          <h3 class="text-xl font-bold text-gray-900 mb-4">Extracted Information</h3>
+        <!-- Raw / unstructured response -->
+        <div v-if="result.analysis.raw_analysis" class="bg-white rounded-2xl border border-gray-200 p-6">
+          <h3 class="text-lg font-bold text-gray-900 mb-4">Resume Analysis</h3>
+          <div class="prose prose-sm max-w-none text-gray-700" v-html="formatMarkdown(result.analysis.raw_analysis)"></div>
+        </div>
 
-          <!-- Skills -->
-          <div v-if="result.analysis.key_skills" class="mb-4">
-            <h4 class="font-semibold text-gray-800 mb-2">Technical Skills</h4>
+        <!-- Skills -->
+        <div v-if="result.analysis.key_skills" class="bg-white rounded-2xl border border-gray-200 p-6">
+          <h3 class="text-lg font-bold text-gray-900 mb-4">Skills Found</h3>
+          <div v-if="result.analysis.key_skills.technical_skills?.length" class="mb-4">
+            <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Technical</p>
             <div class="flex flex-wrap gap-2">
               <span v-for="skill in result.analysis.key_skills.technical_skills" :key="skill"
-                    class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
-                {{ skill }}
-              </span>
-            </div>
-
-            <h4 class="font-semibold text-gray-800 mb-2 mt-4">Soft Skills</h4>
-            <div class="flex flex-wrap gap-2">
-              <span v-for="skill in result.analysis.key_skills.soft_skills" :key="skill"
-                    class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
+                    class="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium border border-blue-100">
                 {{ skill }}
               </span>
             </div>
           </div>
-
-          <!-- Experience & Education -->
-          <div class="grid md:grid-cols-2 gap-4 mt-4">
-            <div v-if="result.analysis.years_of_experience">
-              <h4 class="font-semibold text-gray-800 mb-2">Experience</h4>
-              <p class="text-gray-700">{{ result.analysis.years_of_experience }}</p>
+          <div v-if="result.analysis.key_skills.soft_skills?.length">
+            <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Soft Skills</p>
+            <div class="flex flex-wrap gap-2">
+              <span v-for="skill in result.analysis.key_skills.soft_skills" :key="skill"
+                    class="px-3 py-1 bg-green-50 text-green-700 rounded-full text-sm font-medium border border-green-100">
+                {{ skill }}
+              </span>
             </div>
-            <div v-if="result.analysis.education_background && result.analysis.education_background.length > 0">
-              <h4 class="font-semibold text-gray-800 mb-2">Education</h4>
-              <div v-for="(edu, idx) in result.analysis.education_background" :key="idx" class="text-gray-700">
-                <p class="font-medium">{{ edu.degree }}</p>
-                <p class="text-sm">{{ edu.university }} ({{ edu.years }})</p>
-                <p class="text-sm" v-if="edu.gpa">GPA: {{ edu.gpa }}</p>
-              </div>
+          </div>
+        </div>
+
+        <!-- Experience & Education -->
+        <div class="grid md:grid-cols-2 gap-4">
+          <div v-if="result.analysis.years_of_experience" class="bg-white rounded-2xl border border-gray-200 p-5">
+            <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Experience</p>
+            <p class="text-gray-800 font-medium">{{ result.analysis.years_of_experience }}</p>
+          </div>
+          <div v-if="result.analysis.education_background?.length" class="bg-white rounded-2xl border border-gray-200 p-5">
+            <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Education</p>
+            <div v-for="(edu, idx) in result.analysis.education_background" :key="idx" class="mb-2 last:mb-0">
+              <p class="font-medium text-gray-800 text-sm">{{ edu.degree }}</p>
+              <p class="text-xs text-gray-500">{{ edu.university }} · {{ edu.years }}</p>
+              <p v-if="edu.gpa" class="text-xs text-gray-500">GPA: {{ edu.gpa }}</p>
             </div>
           </div>
         </div>
 
         <!-- Achievements -->
-        <div v-if="result.analysis.notable_achievements && result.analysis.notable_achievements.length > 0"
-             class="bg-white rounded-lg border border-gray-200 p-6">
-          <h3 class="text-xl font-bold text-gray-900 mb-4">Notable Achievements</h3>
+        <div v-if="result.analysis.notable_achievements?.length" class="bg-white rounded-2xl border border-gray-200 p-6">
+          <h3 class="text-lg font-bold text-gray-900 mb-4">Notable Achievements</h3>
           <ul class="space-y-2">
-            <li v-for="(achievement, idx) in result.analysis.notable_achievements" :key="idx"
-                class="flex items-start">
-              <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <li v-for="(a, idx) in result.analysis.notable_achievements" :key="idx" class="flex items-start gap-2">
+              <svg class="w-5 h-5 text-green-500 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
               </svg>
-              <span class="text-gray-700">{{ achievement }}</span>
+              <span class="text-gray-700 text-sm">{{ a }}</span>
             </li>
           </ul>
         </div>
 
-        <!-- Feedback Sections -->
-        <div v-if="result.analysis.formatting_feedback || result.analysis.content_feedback || result.analysis.keyword_suggestions"
-             class="bg-white rounded-lg border border-gray-200 p-6">
-          <h3 class="text-xl font-bold text-gray-900 mb-4">Detailed Feedback</h3>
-
-          <!-- Formatting Issues -->
-          <div v-if="result.analysis.formatting_feedback && result.analysis.formatting_feedback.length > 0" class="mb-4">
-            <h4 class="font-semibold text-gray-800 mb-2 flex items-center">
-              <svg class="w-5 h-5 text-orange-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-              </svg>
-              Formatting Issues
-            </h4>
-            <ul class="list-disc list-inside space-y-1 ml-7">
-              <li v-for="(issue, idx) in result.analysis.formatting_feedback" :key="idx" class="text-gray-700">{{ issue }}</li>
-            </ul>
-          </div>
-
-          <!-- Content Improvements -->
-          <div v-if="result.analysis.content_feedback && result.analysis.content_feedback.length > 0" class="mb-4">
-            <h4 class="font-semibold text-gray-800 mb-2 flex items-center">
-              <svg class="w-5 h-5 text-blue-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
-              </svg>
-              Content Improvements
-            </h4>
-            <ul class="list-disc list-inside space-y-1 ml-7">
-              <li v-for="(feedback, idx) in result.analysis.content_feedback" :key="idx" class="text-gray-700">{{ feedback }}</li>
-            </ul>
-          </div>
-
-          <!-- Missing Keywords -->
-          <div v-if="result.analysis.keyword_suggestions && result.analysis.keyword_suggestions.length > 0" class="mb-4">
-            <h4 class="font-semibold text-gray-800 mb-2">Missing Keywords</h4>
-            <div class="flex flex-wrap gap-2">
-              <span v-for="keyword in result.analysis.keyword_suggestions" :key="keyword"
-                    class="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">
-                {{ keyword }}
-              </span>
+        <!-- Detailed Feedback -->
+        <div v-if="result.analysis.formatting_feedback?.length || result.analysis.content_feedback?.length || result.analysis.keyword_suggestions?.length"
+             class="bg-white rounded-2xl border border-gray-200 p-6">
+          <h3 class="text-lg font-bold text-gray-900 mb-5">Detailed Feedback</h3>
+          <div class="space-y-5">
+            <div v-if="result.analysis.formatting_feedback?.length">
+              <p class="text-sm font-semibold text-orange-700 flex items-center gap-1 mb-2">⚠ Formatting Issues</p>
+              <ul class="list-disc list-inside space-y-1 ml-2">
+                <li v-for="(f, i) in result.analysis.formatting_feedback" :key="i" class="text-sm text-gray-700">{{ f }}</li>
+              </ul>
+            </div>
+            <div v-if="result.analysis.content_feedback?.length">
+              <p class="text-sm font-semibold text-blue-700 flex items-center gap-1 mb-2">✏ Content Improvements</p>
+              <ul class="list-disc list-inside space-y-1 ml-2">
+                <li v-for="(f, i) in result.analysis.content_feedback" :key="i" class="text-sm text-gray-700">{{ f }}</li>
+              </ul>
+            </div>
+            <div v-if="result.analysis.keyword_suggestions?.length">
+              <p class="text-sm font-semibold text-purple-700 mb-2">🔑 Missing Keywords</p>
+              <div class="flex flex-wrap gap-2">
+                <span v-for="kw in result.analysis.keyword_suggestions" :key="kw"
+                      class="px-3 py-1 bg-purple-50 text-purple-700 rounded-full text-xs font-medium border border-purple-100">
+                  {{ kw }}
+                </span>
+              </div>
             </div>
           </div>
+        </div>
 
-          <!-- Action Verb Improvements -->
-          <div v-if="result.analysis.action_verb_improvements && result.analysis.action_verb_improvements.length > 0">
-            <h4 class="font-semibold text-gray-800 mb-2">Strengthen Your Action Verbs</h4>
-            <ul class="list-disc list-inside space-y-1 ml-7">
-              <li v-for="(verb, idx) in result.analysis.action_verb_improvements" :key="idx" class="text-gray-700">{{ verb }}</li>
-            </ul>
-          </div>
+        <!-- Strengths -->
+        <div v-if="result.analysis.overall_strengths?.length"
+             class="bg-green-50 rounded-2xl border border-green-200 p-6">
+          <h3 class="text-lg font-bold text-gray-900 mb-4">Your Strengths ✅</h3>
+          <ul class="space-y-2">
+            <li v-for="(s, i) in result.analysis.overall_strengths" :key="i" class="flex items-start gap-2">
+              <svg class="w-4 h-4 text-green-600 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+              </svg>
+              <span class="text-sm text-gray-700 font-medium">{{ s }}</span>
+            </li>
+          </ul>
         </div>
 
         <!-- Areas for Improvement -->
-        <div v-if="result.analysis.areas_for_improvement && result.analysis.areas_for_improvement.length > 0"
-             class="bg-yellow-50 rounded-lg border border-yellow-200 p-6">
-          <h3 class="text-xl font-bold text-gray-900 mb-4">Key Areas for Improvement</h3>
+        <div v-if="result.analysis.areas_for_improvement?.length"
+             class="bg-yellow-50 rounded-2xl border border-yellow-200 p-6">
+          <h3 class="text-lg font-bold text-gray-900 mb-4">Areas to Improve</h3>
           <ul class="space-y-3">
-            <li v-for="(area, idx) in result.analysis.areas_for_improvement" :key="idx"
-                class="flex items-start">
-              <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-yellow-500 text-white text-sm font-bold mr-3 flex-shrink-0 mt-0.5">
-                {{ idx + 1 }}
-              </span>
-              <span class="text-gray-700">{{ area }}</span>
+            <li v-for="(a, i) in result.analysis.areas_for_improvement" :key="i" class="flex items-start gap-3">
+              <span class="w-6 h-6 rounded-full bg-yellow-400 text-white text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">{{ i + 1 }}</span>
+              <span class="text-sm text-gray-700">{{ a }}</span>
             </li>
           </ul>
         </div>
 
-        <!-- Overall Strengths -->
-        <div v-if="result.analysis.overall_strengths && result.analysis.overall_strengths.length > 0"
-             class="bg-green-50 rounded-lg border border-green-200 p-6">
-          <h3 class="text-xl font-bold text-gray-900 mb-4">Your Strengths</h3>
-          <ul class="space-y-2">
-            <li v-for="(strength, idx) in result.analysis.overall_strengths" :key="idx"
-                class="flex items-start">
-              <svg class="w-5 h-5 text-green-600 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-              </svg>
-              <span class="text-gray-700 font-medium">{{ strength }}</span>
-            </li>
-          </ul>
-        </div>
-
-        <!-- Summary Recommendation -->
+        <!-- Summary -->
         <div v-if="result.analysis.recommendation_summary"
-             class="bg-blue-50 rounded-lg border border-blue-200 p-6">
-          <h3 class="text-xl font-bold text-gray-900 mb-3">Summary</h3>
-          <p class="text-gray-700 text-lg">{{ result.analysis.recommendation_summary }}</p>
+             class="bg-blue-50 rounded-2xl border border-blue-200 p-6">
+          <h3 class="text-lg font-bold text-gray-900 mb-2">Summary</h3>
+          <p class="text-gray-700 text-sm leading-relaxed">{{ result.analysis.recommendation_summary }}</p>
         </div>
-
-        <!-- Debug: Show raw JSON (can be removed later) -->
-        <details class="mt-4">
-          <summary class="cursor-pointer text-sm text-gray-500 hover:text-gray-700">Show raw data</summary>
-          <pre class="mt-2 text-xs text-gray-700 whitespace-pre-wrap bg-gray-100 p-4 rounded">{{ JSON.stringify(result, null, 2) }}</pre>
-        </details>
       </div>
     </div>
 
-    <!-- Candidate: Job Matching Tab -->
+    <!-- ==============================
+         CANDIDATE: JOB MATCHING
+         ============================== -->
     <div v-if="authStore.isCandidate && activeTab === 'matching'" class="card">
-      <h2 class="text-2xl font-bold text-gray-900 mb-4">Job Matching</h2>
-      <p class="text-gray-600 mb-4">Enter your skills to find matching jobs</p>
-      <input
-        v-model="skillsInput"
-        type="text"
-        class="input-field mb-4"
-        placeholder="JavaScript, React, HTML, CSS (comma or space-separated)"
-      />
-      <button @click="findMatchingJobs" :disabled="loading" class="btn-primary">
-        {{ loading ? 'Finding matches...' : 'Find Matching Jobs' }}
+      <h2 class="text-xl font-bold text-gray-900 mb-1">Job Matching</h2>
+      <p class="text-gray-500 text-sm mb-5">Enter your skills to find the best matching jobs</p>
+
+      <input v-model="skillsInput" type="text" class="input-field mb-4"
+             placeholder="JavaScript, React, Node.js (comma or space-separated)" />
+      <button @click="findMatchingJobs" :disabled="loading" class="btn-primary flex items-center gap-2">
+        <svg v-if="loading" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+        </svg>
+        {{ loading ? 'Searching…' : '🔍 Find Matching Jobs' }}
       </button>
 
-      <!-- Job Matching Results -->
       <div v-if="result && result.recommendations" class="mt-6">
         <div class="flex items-center justify-between mb-4">
-          <h3 class="text-xl font-bold text-gray-900">Recommended Jobs</h3>
-          <span class="text-sm text-gray-600">{{ result.recommendations.length }} matches found</span>
+          <h3 class="text-lg font-bold text-gray-900">Recommended Jobs</h3>
+          <span class="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">{{ result.recommendations.length }} found</span>
         </div>
 
-        <div v-if="result.recommendations.length === 0" class="text-center py-8 text-gray-500">
-          <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        <div v-if="result.recommendations.length === 0" class="text-center py-12 text-gray-400">
+          <svg class="w-14 h-14 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
           </svg>
-          <p class="text-lg font-medium">No matching jobs found</p>
-          <p class="text-sm">Try different skills or lower your requirements</p>
+          <p class="font-medium">No matching jobs found</p>
+          <p class="text-sm mt-1">Try different or broader skill terms</p>
         </div>
 
         <div v-else class="space-y-4">
           <div v-for="job in result.recommendations" :key="job.job_id"
-               class="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow">
-            <!-- Job Header -->
-            <div class="flex items-start justify-between mb-3">
-              <div class="flex-1">
-                <h4 class="text-xl font-bold text-gray-900 mb-1">{{ job.title }}</h4>
-                <p class="text-gray-600 flex items-center">
-                  <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 110 2h-3a1 1 0 01-1-1v-2a1 1 0 00-1-1H9a1 1 0 00-1 1v2a1 1 0 01-1 1H4a1 1 0 110-2V4zm3 1h2v2H7V5zm2 4H7v2h2V9zm2-4h2v2h-2V5zm2 4h-2v2h2V9z" clip-rule="evenodd"/>
-                  </svg>
-                  {{ job.company }}
-                </p>
-                <p v-if="job.location" class="text-gray-600 flex items-center mt-1">
-                  <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
-                  </svg>
-                  {{ job.location }}
-                </p>
+               class="bg-white rounded-2xl border border-gray-200 p-6 hover:shadow-md transition-shadow">
+            <div class="flex items-start gap-4">
+              <div class="flex-1 min-w-0">
+                <h4 class="text-base font-bold text-gray-900">{{ job.title }}</h4>
+                <p class="text-sm text-gray-500 mt-0.5">{{ job.company }}</p>
+                <p v-if="job.location" class="text-xs text-gray-400 mt-0.5">📍 {{ job.location }}</p>
               </div>
-
-              <!-- Match Score Badge -->
-              <div class="ml-4">
-                <div class="relative w-20 h-20">
-                  <svg class="transform -rotate-90 w-20 h-20">
-                    <circle cx="40" cy="40" r="32" stroke="#e5e7eb" stroke-width="6" fill="none" />
-                    <circle cx="40" cy="40" r="32"
-                            :stroke="job.match_score >= 80 ? '#10b981' : job.match_score >= 60 ? '#f59e0b' : '#3b82f6'"
-                            stroke-width="6" fill="none"
-                            :stroke-dasharray="201"
-                            :stroke-dashoffset="201 - (201 * job.match_score / 100)" />
-                  </svg>
-                  <div class="absolute top-0 left-0 w-20 h-20 flex items-center justify-center">
-                    <span class="text-lg font-bold">{{ Math.round(job.match_score) }}%</span>
-                  </div>
+              <div class="relative w-16 h-16 shrink-0">
+                <svg class="transform -rotate-90 w-16 h-16">
+                  <circle cx="32" cy="32" r="26" stroke="#e5e7eb" stroke-width="5" fill="none"/>
+                  <circle cx="32" cy="32" r="26"
+                          :stroke="job.match_score >= 80 ? '#10b981' : job.match_score >= 60 ? '#f59e0b' : '#3b82f6'"
+                          stroke-width="5" fill="none" stroke-linecap="round"
+                          :stroke-dasharray="163"
+                          :stroke-dashoffset="163 - (163 * job.match_score / 100)"/>
+                </svg>
+                <div class="absolute inset-0 flex items-center justify-center">
+                  <span class="text-sm font-bold">{{ Math.round(job.match_score) }}%</span>
                 </div>
               </div>
             </div>
 
-            <!-- Matching Skills -->
-            <div v-if="job.matching_skills && job.matching_skills.length > 0" class="mb-3">
-              <h5 class="text-sm font-semibold text-gray-800 mb-2 flex items-center">
-                <svg class="w-4 h-4 mr-1 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                </svg>
-                You Have
-              </h5>
-              <div class="flex flex-wrap gap-2">
-                <span v-for="skill in job.matching_skills" :key="skill"
-                      class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
-                  {{ skill }}
-                </span>
+            <div class="mt-4 space-y-3">
+              <div v-if="job.matching_skills?.length">
+                <p class="text-xs font-semibold text-green-700 mb-1.5">✅ You have</p>
+                <div class="flex flex-wrap gap-1.5">
+                  <span v-for="skill in job.matching_skills" :key="skill"
+                        class="px-2.5 py-1 bg-green-50 text-green-700 rounded-full text-xs font-medium border border-green-100">
+                    {{ skill }}
+                  </span>
+                </div>
               </div>
-            </div>
-
-            <!-- Missing Skills -->
-            <div v-if="job.missing_skills && job.missing_skills.length > 0">
-              <h5 class="text-sm font-semibold text-gray-800 mb-2 flex items-center">
-                <svg class="w-4 h-4 mr-1 text-orange-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                </svg>
-                Skills to Develop
-              </h5>
-              <div class="flex flex-wrap gap-2">
-                <span v-for="skill in job.missing_skills" :key="skill"
-                      class="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm font-medium">
-                  {{ skill }}
-                </span>
+              <div v-if="job.missing_skills?.length">
+                <p class="text-xs font-semibold text-orange-700 mb-1.5">📚 Learn next</p>
+                <div class="flex flex-wrap gap-1.5">
+                  <span v-for="skill in job.missing_skills" :key="skill"
+                        class="px-2.5 py-1 bg-orange-50 text-orange-700 rounded-full text-xs font-medium border border-orange-100">
+                    {{ skill }}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -422,270 +330,351 @@
       </div>
     </div>
 
-    <!-- Candidate: Skills Tab -->
+    <!-- ==============================
+         CANDIDATE: SKILL RECOMMENDATIONS
+         ============================== -->
     <div v-if="authStore.isCandidate && activeTab === 'skills'" class="card">
-      <h2 class="text-2xl font-bold text-gray-900 mb-4">Skill Recommendations</h2>
-      <p class="text-gray-600 mb-4">Get personalized skill recommendations</p>
-      <input
-        v-model="currentSkills"
-        type="text"
-        class="input-field mb-3"
-        placeholder="Python Django React (comma or space-separated)"
-      />
-      <input
-        v-model="targetRole"
-        type="text"
-        class="input-field mb-4"
-        placeholder="Target role (e.g., Senior Backend Engineer)..."
-      />
-      <button @click="getSkillRecommendations" :disabled="loading" class="btn-primary">
-        {{ loading ? 'Getting recommendations...' : 'Get Recommendations' }}
+      <h2 class="text-xl font-bold text-gray-900 mb-1">Skill Recommendations</h2>
+      <p class="text-gray-500 text-sm mb-5">Get a personalised roadmap of skills to learn for your target role</p>
+
+      <div class="space-y-3">
+        <input v-model="currentSkills" type="text" class="input-field"
+               placeholder="Your current skills: Python, Django, React…" />
+        <input v-model="targetRole" type="text" class="input-field"
+               placeholder="Target role: e.g., Senior Backend Engineer" />
+      </div>
+      <button @click="getSkillRecommendations" :disabled="loading" class="btn-primary mt-4 flex items-center gap-2">
+        <svg v-if="loading" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+        </svg>
+        {{ loading ? 'Getting recommendations…' : '⚡ Get Recommendations' }}
       </button>
 
-      <!-- Skill Recommendations Results -->
       <div v-if="result" class="mt-6 space-y-4">
-        <h3 class="text-xl font-bold text-gray-900 mb-4">Recommended Skills to Learn</h3>
-
-        <!-- Check if result is an array (list of skills) -->
-        <div v-if="Array.isArray(result)" class="space-y-4">
+        <div v-if="Array.isArray(result)">
+          <h3 class="text-lg font-bold text-gray-900 mb-4">Your Learning Roadmap</h3>
           <div v-for="(skill, idx) in result" :key="idx"
-               class="bg-white rounded-lg border-l-4 p-5 shadow-sm hover:shadow-md transition-shadow"
-               :class="{
-                 'border-red-500': skill.priority === 'High',
-                 'border-yellow-500': skill.priority === 'Medium',
-                 'border-blue-500': skill.priority === 'Low'
-               }">
-            <div class="flex items-start justify-between">
+               :class="['rounded-2xl border-l-4 p-5 bg-white shadow-sm hover:shadow-md transition-shadow',
+                        skill.priority === 'High' ? 'border-red-500' :
+                        skill.priority === 'Medium' ? 'border-yellow-500' : 'border-blue-500']">
+            <div class="flex items-start gap-3">
               <div class="flex-1">
                 <div class="flex items-center gap-3 mb-2">
-                  <h4 class="text-lg font-bold text-gray-900">{{ skill.skill }}</h4>
-                  <span class="px-3 py-1 rounded-full text-xs font-semibold"
-                        :class="{
-                          'bg-red-100 text-red-800': skill.priority === 'High',
-                          'bg-yellow-100 text-yellow-800': skill.priority === 'Medium',
-                          'bg-blue-100 text-blue-800': skill.priority === 'Low'
-                        }">
+                  <h4 class="font-bold text-gray-900">{{ skill.skill }}</h4>
+                  <span :class="['px-2.5 py-0.5 rounded-full text-xs font-semibold',
+                                 skill.priority === 'High' ? 'bg-red-100 text-red-700' :
+                                 skill.priority === 'Medium' ? 'bg-yellow-100 text-yellow-700' :
+                                 'bg-blue-100 text-blue-700']">
                     {{ skill.priority }} Priority
                   </span>
                 </div>
-
-                <p class="text-gray-700 mb-3">{{ skill.reason }}</p>
-
-                <div class="flex items-center text-sm text-gray-600">
-                  <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                <p class="text-sm text-gray-600 mb-3">{{ skill.reason }}</p>
+                <p class="text-xs text-gray-400 flex items-center gap-1">
+                  <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
                   </svg>
-                  <span>Learning Timeline: {{ skill.timeline }}</span>
-                </div>
+                  {{ skill.timeline }}
+                </p>
               </div>
             </div>
           </div>
         </div>
-
-        <!-- Fallback: Show raw JSON if not an array -->
-        <div v-else class="bg-gray-50 rounded-lg p-4">
-          <details>
-            <summary class="cursor-pointer text-sm text-gray-500 hover:text-gray-700 mb-2">Show raw data</summary>
-            <pre class="text-xs text-gray-700 whitespace-pre-wrap">{{ JSON.stringify(result, null, 2) }}</pre>
-          </details>
+        <!-- Fallback: raw text response -->
+        <div v-else-if="result.raw_response || result.note" class="bg-blue-50 rounded-2xl border border-blue-200 p-6">
+          <div v-if="result.note" class="text-sm text-blue-700 mb-3 font-medium">{{ result.note }}</div>
+          <div v-if="result.raw_response" class="prose prose-sm max-w-none text-gray-700"
+               v-html="formatMarkdown(result.raw_response)"></div>
         </div>
       </div>
     </div>
 
-    <!-- Recruiter: Job Description Generator Tab -->
+    <!-- ==============================
+         RECRUITER: JOB DESCRIPTION
+         ============================== -->
     <div v-if="authStore.isRecruiter && activeTab === 'jobDescription'" class="card">
-      <h2 class="text-2xl font-bold text-gray-900 mb-4">Generate Job Description</h2>
-      <p class="text-gray-600 mb-4">Get AI assistance to create compelling job descriptions</p>
+      <h2 class="text-xl font-bold text-gray-900 mb-1">Generate Job Description</h2>
+      <p class="text-gray-500 text-sm mb-5">AI-crafted job postings in seconds</p>
 
-      <div class="space-y-4">
+      <div class="grid md:grid-cols-2 gap-4">
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Job Title</label>
-          <input
-            v-model="jobDescInput.title"
-            type="text"
-            class="input-field"
-            placeholder="e.g., Senior Full Stack Developer"
-          />
+          <label class="label-sm">Job Title</label>
+          <input v-model="jobDescInput.title" type="text" class="input-field" placeholder="e.g., Senior Full Stack Developer"/>
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Company Name</label>
-          <input
-            v-model="jobDescInput.company"
-            type="text"
-            class="input-field"
-            placeholder="e.g., Tech Corp"
-          />
+          <label class="label-sm">Company Name</label>
+          <input v-model="jobDescInput.company" type="text" class="input-field" placeholder="e.g., Tech Corp"/>
+        </div>
+        <div class="md:col-span-2">
+          <label class="label-sm">Required Skills</label>
+          <input v-model="jobDescInput.skills" type="text" class="input-field" placeholder="Python, Django, React, PostgreSQL…"/>
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Required Skills</label>
-          <input
-            v-model="jobDescInput.skills"
-            type="text"
-            class="input-field"
-            placeholder="Python, Django, React, PostgreSQL..."
-          />
+          <label class="label-sm">Experience (years)</label>
+          <input v-model.number="jobDescInput.experience" type="number" class="input-field" placeholder="5"/>
         </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Experience Level (years)</label>
-          <input
-            v-model.number="jobDescInput.experience"
-            type="number"
-            class="input-field"
-            placeholder="5"
-          />
-        </div>
-        <button @click="generateJobDescription" :disabled="loading" class="btn-primary">
-          {{ loading ? 'Generating...' : 'Generate Description' }}
-        </button>
       </div>
 
-      <div v-if="result" class="mt-6 p-6 bg-white rounded-lg border border-gray-200 shadow-lg">
-        <div class="flex justify-between items-center mb-6">
-          <h3 class="font-bold text-gray-900 text-xl">Generated Job Description</h3>
-          <button @click="copyToClipboard(result.job_description)" class="btn-secondary text-sm px-4 py-2">
-            📋 Copy to Clipboard
+      <button @click="generateJobDescription" :disabled="loading" class="btn-primary mt-5 flex items-center gap-2">
+        <svg v-if="loading" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+        </svg>
+        {{ loading ? 'Generating…' : '✍️ Generate Description' }}
+      </button>
+
+      <div v-if="result" class="mt-6">
+        <!-- Header bar -->
+        <div class="flex items-center justify-between bg-gradient-to-r from-primary-600 to-primary-700 text-white px-6 py-4 rounded-t-2xl">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center text-lg">📝</div>
+            <div>
+              <p class="font-bold text-sm">Generated Job Description</p>
+              <p class="text-xs text-primary-200">AI-crafted · Ready to post</p>
+            </div>
+          </div>
+          <button @click="copyToClipboard(result.job_description)"
+                  class="flex items-center gap-1.5 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-xl text-sm font-medium transition-colors">
+            📋 Copy All
           </button>
         </div>
-        <div class="prose prose-blue max-w-none" v-html="formatJobDescription(result.job_description)"></div>
+        <!-- Content -->
+        <div class="bg-white border border-gray-200 border-t-0 rounded-b-2xl shadow-sm px-8 py-7 job-desc-output">
+          <div v-html="formatJobDescription(result.job_description)"></div>
+        </div>
       </div>
     </div>
 
-    <!-- Recruiter: Candidate Screening Tab -->
+    <!-- ==============================
+         RECRUITER: CANDIDATE SCREENING
+         ============================== -->
     <div v-if="authStore.isRecruiter && activeTab === 'screening'" class="card">
-      <h2 class="text-2xl font-bold text-gray-900 mb-4">Screen Candidates</h2>
-      <p class="text-gray-600 mb-4">AI-powered candidate evaluation against job requirements</p>
+      <h2 class="text-xl font-bold text-gray-900 mb-1">Screen Candidates</h2>
+      <p class="text-gray-500 text-sm mb-5">AI-powered evaluation against your job requirements</p>
 
       <div class="space-y-4">
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Job Requirements</label>
-          <textarea
-            v-model="screeningInput.requirements"
-            rows="4"
-            class="input-field"
-            placeholder="Enter the key skills and qualifications needed for this role..."
-          ></textarea>
+          <label class="label-sm">Job Requirements</label>
+          <textarea v-model="screeningInput.requirements" rows="4" class="input-field"
+                    placeholder="List the key skills and qualifications required for this role…"></textarea>
         </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Upload Candidate Resume</label>
-          <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary-500 transition-colors">
-            <input
-              ref="fileInput"
-              type="file"
-              accept=".pdf,.docx,.txt"
-              @change="handleFileUpload"
-              class="hidden"
-            />
-            <button
-              type="button"
-              @click="$refs.fileInput.click()"
-              class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-            >
-              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-              </svg>
-              Choose File
-            </button>
-            <p class="mt-2 text-sm text-gray-500">PDF, DOCX, or TXT (max 10MB)</p>
-            <p v-if="screeningInput.fileName" class="mt-2 text-sm text-primary-600 font-medium">
-              Selected: {{ screeningInput.fileName }}
-            </p>
-          </div>
+
+        <div class="border-2 border-dashed border-gray-200 rounded-xl p-5 text-center hover:border-primary-400 transition-colors cursor-pointer bg-gray-50"
+             @click="$refs.fileInput.click()">
+          <input ref="fileInput" type="file" accept=".pdf,.docx,.txt" @change="handleFileUpload" class="hidden"/>
+          <p class="text-sm font-medium text-gray-700">Click to upload candidate resume</p>
+          <p class="text-xs text-gray-400 mt-1">PDF, DOCX, or TXT · max 10 MB</p>
+          <p v-if="screeningInput.fileName" class="mt-2 text-sm text-primary-600 font-semibold">📄 {{ screeningInput.fileName }}</p>
         </div>
-        <div class="text-center text-sm text-gray-500">OR</div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Paste Resume Text</label>
-          <textarea
-            v-model="screeningInput.resume"
-            rows="6"
-            class="input-field"
-            placeholder="Or paste candidate's resume text here..."
-          ></textarea>
+
+        <div class="relative flex items-center">
+          <div class="flex-grow border-t border-gray-200"></div>
+          <span class="mx-3 text-xs text-gray-400 uppercase tracking-widest">or paste text</span>
+          <div class="flex-grow border-t border-gray-200"></div>
         </div>
-        <button @click="screenCandidate" :disabled="loading" class="btn-primary">
-          {{ loading ? 'Analyzing...' : 'Evaluate Candidate' }}
+
+        <textarea v-model="screeningInput.resume" rows="5" class="input-field"
+                  placeholder="Paste candidate's resume text here…"></textarea>
+
+        <button @click="screenCandidate" :disabled="loading" class="btn-primary flex items-center gap-2">
+          <svg v-if="loading" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+          </svg>
+          {{ loading ? 'Evaluating…' : '🔎 Evaluate Candidate' }}
         </button>
       </div>
 
-      <!-- Screening Results -->
-      <div v-if="result && result.analysis" class="mt-6">
-        <div class="bg-white rounded-lg border-2 border-primary-200 shadow-xl p-8">
-          <div class="flex justify-between items-center mb-6">
-            <h3 class="text-2xl font-bold text-gray-900 flex items-center">
-              <svg class="w-8 h-8 text-primary-600 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
-                <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/>
-              </svg>
-              Candidate Screening Analysis
-            </h3>
-            <button @click="copyToClipboard(result.analysis)" class="btn-secondary text-sm px-4 py-2">
-              📋 Copy Analysis
-            </button>
-          </div>
+      <div v-if="result && result.analysis" class="mt-6 rounded-2xl overflow-hidden shadow-lg border border-gray-200">
 
-          <div class="screening-analysis prose prose-lg max-w-none" v-html="formatScreeningAnalysis(result.analysis)"></div>
+        <!-- Report header -->
+        <div class="bg-gradient-to-r from-slate-800 to-slate-700 text-white px-6 py-5">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center text-2xl shrink-0">🧑‍💼</div>
+              <div>
+                <p class="font-bold text-base">Candidate Evaluation Report</p>
+                <p class="text-slate-300 text-xs mt-0.5">AI-powered screening · Gemini Flash</p>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-4">
+              <!-- Score circle -->
+              <div v-if="screeningScore > 0" class="relative w-16 h-16 shrink-0">
+                <svg class="transform -rotate-90 w-16 h-16">
+                  <circle cx="32" cy="32" r="26" stroke="rgba(255,255,255,0.15)" stroke-width="5" fill="none"/>
+                  <circle cx="32" cy="32" r="26"
+                          :stroke="screeningScore >= 80 ? '#10b981' : screeningScore >= 60 ? '#f59e0b' : '#ef4444'"
+                          stroke-width="5" fill="none" stroke-linecap="round"
+                          :stroke-dasharray="163"
+                          :stroke-dashoffset="163 - (163 * screeningScoreAnimated / 100)"
+                          style="transition: stroke-dashoffset 1.2s ease"/>
+                </svg>
+                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                  <span class="text-base font-extrabold leading-none">{{ screeningScoreAnimated }}</span>
+                  <span class="text-xs text-slate-400 leading-none">/100</span>
+                </div>
+              </div>
+
+              <!-- Recommendation badge -->
+              <div v-if="screeningRecommendation">
+                <span :class="['px-4 py-2 rounded-xl font-bold text-sm whitespace-nowrap',
+                               screeningRecommendation === 'Strong Yes' ? 'bg-green-500 text-white' :
+                               screeningRecommendation === 'Yes' ? 'bg-green-400 text-white' :
+                               screeningRecommendation === 'Maybe' ? 'bg-yellow-500 text-white' :
+                               'bg-red-500 text-white']">
+                  {{ screeningRecommendation === 'Strong Yes' ? '🌟 Strong Yes' :
+                     screeningRecommendation === 'Yes' ? '✅ Yes' :
+                     screeningRecommendation === 'Maybe' ? '🤔 Maybe' : '❌ No' }}
+                </span>
+              </div>
+
+              <button @click="copyToClipboard(result.analysis)"
+                      class="flex items-center gap-1.5 px-3 py-2 bg-white/15 hover:bg-white/25 rounded-xl text-xs font-medium transition-colors shrink-0">
+                📋 Copy
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Report body -->
+        <div class="bg-gray-50 px-6 py-6">
+          <div class="screening-analysis space-y-4" v-html="formatScreeningAnalysis(result.analysis)"></div>
         </div>
       </div>
     </div>
 
-    <!-- Recruiter: Interview Questions Tab -->
+    <!-- ==============================
+         RECRUITER: INTERVIEW QUESTIONS
+         ============================== -->
     <div v-if="authStore.isRecruiter && activeTab === 'interviews'" class="card">
-      <h2 class="text-2xl font-bold text-gray-900 mb-4">Generate Interview Questions</h2>
-      <p class="text-gray-600 mb-4">Create role-specific interview questions tailored to your needs</p>
+      <h2 class="text-xl font-bold text-gray-900 mb-1">Generate Interview Questions</h2>
+      <p class="text-gray-500 text-sm mb-5">Role-specific questions tailored to your needs</p>
 
-      <div class="space-y-4">
+      <div class="grid md:grid-cols-2 gap-4">
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Job Role</label>
-          <input
-            v-model="interviewInput.role"
-            type="text"
-            class="input-field"
-            placeholder="e.g., Senior Backend Engineer"
-          />
+          <label class="label-sm">Job Role</label>
+          <input v-model="interviewInput.role" type="text" class="input-field" placeholder="e.g., Senior Backend Engineer"/>
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Key Skills to Test</label>
-          <input
-            v-model="interviewInput.skills"
-            type="text"
-            class="input-field"
-            placeholder="Python, System Design, Database Optimization..."
-          />
+          <label class="label-sm">Number of Questions</label>
+          <input v-model.number="interviewInput.count" type="number" class="input-field" min="1" max="20" placeholder="10"/>
         </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Number of Questions</label>
-          <input
-            v-model.number="interviewInput.count"
-            type="number"
-            class="input-field"
-            placeholder="10"
-            min="1"
-            max="20"
-          />
+        <div class="md:col-span-2">
+          <label class="label-sm">Key Skills to Test</label>
+          <input v-model="interviewInput.skills" type="text" class="input-field" placeholder="Python, System Design, Database Optimization…"/>
         </div>
-        <button @click="generateInterviewQuestions" :disabled="loading" class="btn-primary">
-          {{ loading ? 'Generating...' : 'Generate Questions' }}
-        </button>
       </div>
 
-      <div v-if="result" class="mt-6 p-6 bg-white rounded-lg border border-gray-200 shadow-lg">
+      <button @click="generateInterviewQuestions" :disabled="loading" class="btn-primary mt-5 flex items-center gap-2">
+        <svg v-if="loading" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+        </svg>
+        {{ loading ? 'Generating…' : '❓ Generate Questions' }}
+      </button>
+
+      <div v-if="result" class="mt-6 bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
         <div class="flex justify-between items-center mb-4">
-          <h3 class="font-bold text-gray-900 text-xl">Interview Questions</h3>
-          <button @click="copyToClipboard(result.questions)" class="btn-secondary text-sm px-4 py-2">
-            📋 Copy to Clipboard
+          <h3 class="font-bold text-gray-900 text-lg">Interview Questions</h3>
+          <button @click="copyToClipboard(result.questions)" class="btn-secondary text-sm px-4 py-2 flex items-center gap-1.5">
+            📋 Copy
           </button>
         </div>
-        <div class="mb-4 p-3 bg-blue-50 rounded-lg">
-          <p class="text-sm text-gray-700"><strong>Role:</strong> {{ result.role }}</p>
-          <p class="text-sm text-gray-700"><strong>Skills:</strong> {{ result.skills }}</p>
+        <div class="flex gap-3 mb-4 p-3 bg-gray-50 rounded-xl text-sm text-gray-600">
+          <span><strong>Role:</strong> {{ result.role }}</span>
+          <span class="text-gray-300">|</span>
+          <span><strong>Skills:</strong> {{ result.skills }}</span>
         </div>
-        <div class="prose prose-blue max-w-none" v-html="formatJobDescription(result.questions)"></div>
+        <div class="prose prose-sm max-w-none" v-html="formatJobDescription(result.questions)"></div>
       </div>
     </div>
+
+    <!-- ==============================
+         AI CHAT (shared for both roles)
+         ============================== -->
+    <div v-if="activeTab === 'chat'" class="flex flex-col bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden"
+         style="height: 70vh;">
+
+      <!-- Chat header -->
+      <div class="flex items-center gap-3 px-5 py-4 bg-gradient-to-r from-primary-600 to-primary-700 text-white">
+        <div class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-lg">🤖</div>
+        <div>
+          <p class="font-semibold text-sm">TalentBridge AI</p>
+          <p class="text-xs text-primary-200">
+            {{ authStore.isRecruiter ? 'Ask me about candidates, hiring, job postings…' : 'Ask me about jobs, your resume, career growth…' }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Messages -->
+      <div ref="chatContainer" class="flex-1 overflow-y-auto px-5 py-4 space-y-4 bg-gray-50">
+        <!-- Welcome message -->
+        <div v-if="chatMessages.length === 0" class="flex flex-col items-center justify-center h-full text-center py-8">
+          <div class="text-5xl mb-4">💬</div>
+          <p class="text-gray-600 font-medium mb-2">How can I help you today?</p>
+          <p class="text-gray-400 text-sm mb-6">Ask anything about your {{ authStore.isRecruiter ? 'hiring process' : 'job search' }}</p>
+          <div class="flex flex-wrap gap-2 justify-center max-w-lg">
+            <button v-for="suggestion in chatSuggestions" :key="suggestion"
+                    @click="sendSuggestion(suggestion)"
+                    class="px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm text-gray-600 hover:border-primary-400 hover:text-primary-600 transition-colors">
+              {{ suggestion }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Message bubbles -->
+        <div v-for="(msg, idx) in chatMessages" :key="idx"
+             :class="['flex', msg.role === 'user' ? 'justify-end' : 'justify-start']">
+          <div v-if="msg.role === 'assistant'" class="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-sm shrink-0 mr-2 mt-1">🤖</div>
+          <div :class="['max-w-[75%] rounded-2xl px-4 py-3 text-sm leading-relaxed',
+                        msg.role === 'user'
+                          ? 'bg-primary-600 text-white rounded-br-sm'
+                          : 'bg-white text-gray-800 border border-gray-200 rounded-bl-sm shadow-sm']">
+            <div v-if="msg.role === 'assistant'" v-html="formatMarkdown(msg.content)"></div>
+            <span v-else>{{ msg.content }}</span>
+          </div>
+          <div v-if="msg.role === 'user'" class="w-8 h-8 rounded-full bg-primary-600 flex items-center justify-center text-white text-xs font-bold shrink-0 ml-2 mt-1">
+            {{ userInitial }}
+          </div>
+        </div>
+
+        <!-- Typing indicator -->
+        <div v-if="chatLoading" class="flex justify-start">
+          <div class="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-sm shrink-0 mr-2 mt-1">🤖</div>
+          <div class="bg-white border border-gray-200 rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm">
+            <div class="flex gap-1 items-center h-4">
+              <span class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0ms"></span>
+              <span class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 150ms"></span>
+              <span class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 300ms"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Input -->
+      <div class="px-4 py-3 border-t border-gray-200 bg-white">
+        <div class="flex gap-2 items-end">
+          <textarea v-model="chatInput" @keydown.enter.exact.prevent="sendChatMessage"
+                    rows="1" class="flex-1 resize-none rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-100"
+                    placeholder="Type a message… (Enter to send)"
+                    style="max-height: 120px; overflow-y: auto"></textarea>
+          <button @click="sendChatMessage" :disabled="chatLoading || !chatInput.trim()"
+                  class="w-10 h-10 rounded-xl bg-primary-600 hover:bg-primary-700 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center text-white transition-colors shrink-0">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+            </svg>
+          </button>
+        </div>
+        <p class="text-xs text-gray-400 mt-1.5 ml-1">Enter to send · Shift+Enter for new line</p>
+      </div>
+    </div>
+
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, nextTick, watch } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import axios from 'axios'
 
@@ -694,11 +683,76 @@ const loading = ref(false)
 const result = ref(null)
 const fileInput = ref(null)
 const resumeFileInput = ref(null)
+const chatContainer = ref(null)
 
-// Set default active tab based on role
+// ATS score animation
+const atsScoreAnimated = ref(0)
+
+// Toast
+const toast = ref({ show: false, message: '', type: 'success' })
+const showToast = (message, type = 'success') => {
+  toast.value = { show: true, message, type }
+  setTimeout(() => { toast.value.show = false }, 3500)
+}
+
+// Tabs
+const candidateTabs = [
+  { id: 'resume', label: 'Resume Analysis', icon: '📄' },
+  { id: 'matching', label: 'Job Matching', icon: '🎯' },
+  { id: 'skills', label: 'Skill Recommendations', icon: '⚡' },
+  { id: 'chat', label: 'AI Chat', icon: '💬' }
+]
+const recruiterTabs = [
+  { id: 'jobDescription', label: 'Job Description', icon: '✍️' },
+  { id: 'screening', label: 'Screen Candidates', icon: '🔎' },
+  { id: 'interviews', label: 'Interview Questions', icon: '❓' },
+  { id: 'chat', label: 'AI Chat', icon: '💬' }
+]
+
 const activeTab = ref(authStore.isRecruiter ? 'jobDescription' : 'resume')
 
-// Candidate inputs
+const switchTab = (tabId) => {
+  activeTab.value = tabId
+  result.value = null
+}
+
+// Watch ATS score to animate it
+watch(() => result.value?.analysis?.ats_score, (score) => {
+  if (!score) return
+  atsScoreAnimated.value = 0
+  const target = score
+  const step = target / 40
+  const interval = setInterval(() => {
+    atsScoreAnimated.value = Math.min(Math.round(atsScoreAnimated.value + step), target)
+    if (atsScoreAnimated.value >= target) clearInterval(interval)
+  }, 30)
+})
+
+// Screening score + recommendation (extracted from AI text)
+const screeningScore = ref(0)
+const screeningScoreAnimated = ref(0)
+const screeningRecommendation = ref('')
+
+watch(() => result.value?.analysis, (analysis) => {
+  if (!analysis) { screeningScore.value = 0; screeningRecommendation.value = ''; return }
+  // Extract score: "Score: 92/100"
+  const scoreMatch = analysis.match(/Score:?\s*(\d+)\s*\/\s*100/i)
+  if (scoreMatch) {
+    const target = parseInt(scoreMatch[1])
+    screeningScore.value = target
+    screeningScoreAnimated.value = 0
+    const step = target / 40
+    const interval = setInterval(() => {
+      screeningScoreAnimated.value = Math.min(Math.round(screeningScoreAnimated.value + step), target)
+      if (screeningScoreAnimated.value >= target) clearInterval(interval)
+    }, 30)
+  }
+  // Extract recommendation
+  const recMatch = analysis.match(/Recommendation:?\s*\[?\s*(Strong\s+Yes|Yes|Maybe|No)\s*\]?/i)
+  if (recMatch) screeningRecommendation.value = recMatch[1].replace(/\s+/g, ' ').trim()
+})
+
+// ── Candidate inputs ──
 const resumeText = ref('')
 const resumeFile = ref(null)
 const resumeFileName = ref('')
@@ -706,123 +760,118 @@ const skillsInput = ref('')
 const currentSkills = ref('')
 const targetRole = ref('')
 
-// Recruiter inputs
-const jobDescInput = ref({
-  title: '',
-  company: '',
-  skills: '',
-  experience: null
+// ── Recruiter inputs ──
+const jobDescInput = ref({ title: '', company: '', skills: '', experience: null })
+const screeningInput = ref({ requirements: '', resume: '', file: null, fileName: '' })
+const interviewInput = ref({ role: '', skills: '', count: 10 })
+
+// ── Chat ──
+const chatMessages = ref([])
+const chatInput = ref('')
+const chatLoading = ref(false)
+const conversationId = ref(null)
+
+const userInitial = computed(() => {
+  const name = authStore.user?.first_name || authStore.user?.email || 'U'
+  return name[0].toUpperCase()
 })
 
-const screeningInput = ref({
-  requirements: '',
-  resume: '',
-  file: null,
-  fileName: ''
+const chatSuggestions = computed(() => {
+  if (authStore.isRecruiter) return [
+    'How do I write a compelling job description?',
+    'What interview questions reveal culture fit?',
+    'How do I evaluate a candidate quickly?',
+    'What red flags should I look for in resumes?'
+  ]
+  return [
+    'How can I improve my ATS score?',
+    'What skills are in demand for software engineers?',
+    'How do I negotiate a higher salary?',
+    'Tips for a strong cover letter?'
+  ]
 })
 
-const interviewInput = ref({
-  role: '',
-  skills: '',
-  count: 10
-})
-
-const handleResumeFileUpload = (event) => {
-  const file = event.target.files[0]
-  if (file) {
-    // Check file size (max 10MB)
-    if (file.size > 10 * 1024 * 1024) {
-      alert('File size exceeds 10MB. Please choose a smaller file.')
-      return
-    }
-    resumeFile.value = file
-    resumeFileName.value = file.name
+const scrollChatToBottom = async () => {
+  await nextTick()
+  if (chatContainer.value) {
+    chatContainer.value.scrollTop = chatContainer.value.scrollHeight
   }
 }
 
+// ── File uploads ──
+const handleResumeFileUpload = (event) => {
+  const file = event.target.files[0]
+  if (!file) return
+  if (file.size > 10 * 1024 * 1024) { showToast('File exceeds 10 MB limit', 'error'); return }
+  resumeFile.value = file
+  resumeFileName.value = file.name
+}
+
+const handleFileUpload = (event) => {
+  const file = event.target.files[0]
+  if (!file) return
+  if (file.size > 10 * 1024 * 1024) { showToast('File exceeds 10 MB limit', 'error'); return }
+  screeningInput.value.file = file
+  screeningInput.value.fileName = file.name
+}
+
+// ── Candidate actions ──
 const analyzeResume = async () => {
-  loading.value = true
-  result.value = null
+  if (!resumeFile.value && !resumeText.value) {
+    showToast('Please upload a file or paste resume text', 'error'); return
+  }
+  loading.value = true; result.value = null
   try {
     const formData = new FormData()
-
-    if (resumeFile.value) {
-      formData.append('resume_file', resumeFile.value)
-    } else if (resumeText.value) {
-      formData.append('resume_text', resumeText.value)
-    } else {
-      alert('Please upload a resume file or paste resume text')
-      loading.value = false
-      return
-    }
-
+    if (resumeFile.value) formData.append('resume_file', resumeFile.value)
+    else formData.append('resume_text', resumeText.value)
     const response = await axios.post('/ai/candidate/analyze_resume/', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
+      headers: { 'Content-Type': 'multipart/form-data' }
     })
     result.value = response.data
   } catch (error) {
-    alert('Error analyzing resume: ' + (error.response?.data?.error || error.message))
-  } finally {
-    loading.value = false
-  }
+    showToast('Analysis failed: ' + (error.response?.data?.error || error.message), 'error')
+  } finally { loading.value = false }
 }
 
 const findMatchingJobs = async () => {
-  loading.value = true
-  result.value = null
+  if (!skillsInput.value.trim()) { showToast('Please enter your skills', 'error'); return }
+  loading.value = true; result.value = null
   try {
-    // Support both comma-separated and space-separated skills
-    let skills = []
-    if (skillsInput.value.includes(',')) {
-      // Comma-separated
-      skills = skillsInput.value.split(',').map(s => s.trim()).filter(s => s)
-    } else {
-      // Space-separated
-      skills = skillsInput.value.split(/\s+/).map(s => s.trim()).filter(s => s)
-    }
-
-    const response = await axios.post('/ai/candidate/suggest_jobs/', {
-      skills: skills,
-      limit: 5
-    })
+    const skills = skillsInput.value.includes(',')
+      ? skillsInput.value.split(',').map(s => s.trim()).filter(Boolean)
+      : skillsInput.value.split(/\s+/).map(s => s.trim()).filter(Boolean)
+    const response = await axios.post('/ai/candidate/suggest_jobs/', { skills, limit: 5 })
     result.value = response.data
   } catch (error) {
-    alert('Error finding jobs: ' + (error.response?.data?.error || error.message))
-  } finally {
-    loading.value = false
-  }
+    showToast('Failed to find jobs: ' + (error.response?.data?.error || error.message), 'error')
+  } finally { loading.value = false }
 }
 
 const getSkillRecommendations = async () => {
-  loading.value = true
-  result.value = null
+  if (!currentSkills.value.trim() || !targetRole.value.trim()) {
+    showToast('Please fill in both fields', 'error'); return
+  }
+  loading.value = true; result.value = null
   try {
-    // Support both comma-separated and space-separated skills
-    let skills = []
-    if (currentSkills.value.includes(',')) {
-      skills = currentSkills.value.split(',').map(s => s.trim()).filter(s => s)
-    } else {
-      skills = currentSkills.value.split(/\s+/).map(s => s.trim()).filter(s => s)
-    }
-
+    const skills = currentSkills.value.includes(',')
+      ? currentSkills.value.split(',').map(s => s.trim()).filter(Boolean)
+      : currentSkills.value.split(/\s+/).map(s => s.trim()).filter(Boolean)
     const response = await axios.post('/ai/candidate/recommend_skills/', {
-      current_skills: skills,
-      target_role: targetRole.value
+      current_skills: skills, target_role: targetRole.value
     })
     result.value = response.data
   } catch (error) {
-    alert('Error getting recommendations: ' + (error.response?.data?.error || error.message))
-  } finally {
-    loading.value = false
-  }
+    showToast('Failed to get recommendations: ' + (error.response?.data?.error || error.message), 'error')
+  } finally { loading.value = false }
 }
 
-// Recruiter Functions
+// ── Recruiter actions ──
 const generateJobDescription = async () => {
-  loading.value = true
-  result.value = null
+  if (!jobDescInput.value.title || !jobDescInput.value.company) {
+    showToast('Please enter job title and company', 'error'); return
+  }
+  loading.value = true; result.value = null
   try {
     const response = await axios.post('/ai/recruiter/generate_job_description/', {
       position: jobDescInput.value.title,
@@ -831,70 +880,35 @@ const generateJobDescription = async () => {
     })
     result.value = response.data
   } catch (error) {
-    alert('Error generating job description: ' + (error.response?.data?.error || error.message))
-  } finally {
-    loading.value = false
-  }
-}
-
-const handleFileUpload = (event) => {
-  const file = event.target.files[0]
-  if (file) {
-    // Check file size (max 10MB)
-    if (file.size > 10 * 1024 * 1024) {
-      alert('File size exceeds 10MB. Please choose a smaller file.')
-      return
-    }
-    screeningInput.value.file = file
-    screeningInput.value.fileName = file.name
-  }
+    showToast('Generation failed: ' + (error.response?.data?.error || error.message), 'error')
+  } finally { loading.value = false }
 }
 
 const screenCandidate = async () => {
-  loading.value = true
-  result.value = null
+  if (!screeningInput.value.requirements) { showToast('Please enter job requirements', 'error'); return }
+  if (!screeningInput.value.file && !screeningInput.value.resume) {
+    showToast('Please upload a resume or paste text', 'error'); return
+  }
+  loading.value = true; result.value = null
   try {
     const formData = new FormData()
     formData.append('job_requirements', screeningInput.value.requirements)
-
-    if (screeningInput.value.file) {
-      formData.append('resume_file', screeningInput.value.file)
-    } else if (screeningInput.value.resume) {
-      formData.append('resume_text', screeningInput.value.resume)
-    } else {
-      alert('Please upload a resume file or paste resume text')
-      loading.value = false
-      return
-    }
-
+    if (screeningInput.value.file) formData.append('resume_file', screeningInput.value.file)
+    else formData.append('resume_text', screeningInput.value.resume)
     const response = await axios.post('/ai/recruiter/screen_candidate/', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
+      headers: { 'Content-Type': 'multipart/form-data' }
     })
     result.value = response.data
   } catch (error) {
-    console.error('Screen candidate error:', error.response?.data)
-    let errorMsg = 'Error screening candidate: '
-    if (error.response?.data) {
-      // Handle DRF validation errors
-      if (typeof error.response.data === 'object') {
-        errorMsg += JSON.stringify(error.response.data, null, 2)
-      } else {
-        errorMsg += error.response.data.error || error.response.data
-      }
-    } else {
-      errorMsg += error.message
-    }
-    alert(errorMsg)
-  } finally {
-    loading.value = false
-  }
+    showToast('Screening failed: ' + (error.response?.data?.error || error.message), 'error')
+  } finally { loading.value = false }
 }
 
 const generateInterviewQuestions = async () => {
-  loading.value = true
-  result.value = null
+  if (!interviewInput.value.role || !interviewInput.value.skills) {
+    showToast('Please fill in role and skills', 'error'); return
+  }
+  loading.value = true; result.value = null
   try {
     const response = await axios.post('/ai/recruiter/interview_questions/', {
       role: interviewInput.value.role,
@@ -903,252 +917,334 @@ const generateInterviewQuestions = async () => {
     })
     result.value = response.data
   } catch (error) {
-    alert('Error generating interview questions: ' + (error.response?.data?.error || error.message))
+    showToast('Generation failed: ' + (error.response?.data?.error || error.message), 'error')
+  } finally { loading.value = false }
+}
+
+// ── Chat ──
+const sendSuggestion = (text) => {
+  chatInput.value = text
+  sendChatMessage()
+}
+
+const sendChatMessage = async () => {
+  const message = chatInput.value.trim()
+  if (!message || chatLoading.value) return
+
+  chatMessages.value.push({ role: 'user', content: message })
+  chatInput.value = ''
+  chatLoading.value = true
+  await scrollChatToBottom()
+
+  try {
+    // Create conversation on first message
+    if (!conversationId.value) {
+      const conv = await axios.post('/ai/conversations/', { title: 'Chat' })
+      conversationId.value = conv.data.id
+    }
+
+    const response = await axios.post(`/ai/conversations/${conversationId.value}/send_message/`, { message })
+    chatMessages.value.push({ role: 'assistant', content: response.data.message })
+  } catch (error) {
+    chatMessages.value.push({
+      role: 'assistant',
+      content: '⚠️ Sorry, I couldn\'t process that. Please try again.'
+    })
   } finally {
-    loading.value = false
+    chatLoading.value = false
+    await scrollChatToBottom()
   }
 }
 
+// ── Helpers ──
+const copyToClipboard = (text) => {
+  navigator.clipboard.writeText(text)
+    .then(() => showToast('Copied to clipboard!'))
+    .catch(() => showToast('Copy failed — please copy manually', 'error'))
+}
+
+const formatMarkdown = (text) => {
+  if (!text) return ''
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    .replace(/^### (.*?)$/gm, '<h4 class="text-base font-bold text-gray-900 mt-4 mb-1">$1</h4>')
+    .replace(/^## (.*?)$/gm, '<h3 class="text-lg font-bold text-gray-900 mt-5 mb-2">$1</h3>')
+    .replace(/^# (.*?)$/gm, '<h2 class="text-xl font-bold text-gray-900 mt-5 mb-2">$1</h2>')
+    .replace(/^[-*] (.*?)$/gm, '<li class="ml-4 text-gray-700 text-sm">$1</li>')
+    .replace(/(<li.*<\/li>\n?)+/g, (match) => `<ul class="list-disc list-inside space-y-1 mb-3">${match}</ul>`)
+    .replace(/\n\n/g, '</p><p class="mb-3">')
+    .replace(/\n/g, '<br>')
+}
+
+// Inline bold/italic helper
+const boldInline = (text) =>
+  text
+    .replace(/\*\*(.*?)\*\*/g, '<strong class="text-gray-900 font-semibold">$1</strong>')
+    .replace(/(?<!\*)\*(?!\*)([^*]+)(?<!\*)\*(?!\*)/g, '<em>$1</em>')
+
 const formatJobDescription = (text) => {
   if (!text) return ''
-
-  // Split into lines
-  let lines = text.split('\n')
+  const lines = text.split('\n')
   let html = ''
-  let inList = false
+  let inBulletList = false
+  let inNumberedList = false
+  let optionCount = 0
 
-  lines.forEach(line => {
-    line = line.trim()
+  const closeLists = () => {
+    if (inBulletList) { html += '</ul>'; inBulletList = false }
+    if (inNumberedList) { html += '</ol>'; inNumberedList = false }
+  }
 
-    if (!line) {
-      // Close list if we were in one
-      if (inList) {
-        html += '</ul>'
-        inList = false
-      }
-      html += '<br>'
+  lines.forEach(raw => {
+    const line = raw.trim()
+
+    // Blank line
+    if (!line) { closeLists(); return }
+
+    // Horizontal rule  (-- or --- or ────)
+    if (/^[-─]{2,}$/.test(line)) {
+      closeLists()
+      html += '<div class="my-6 border-t border-dashed border-gray-200"></div>'
       return
     }
 
-    // Check if line is a bullet point
-    if (line.startsWith('*') || line.startsWith('-')) {
-      if (!inList) {
-        html += '<ul class="list-disc ml-6 space-y-2">'
-        inList = true
+    // Numbered list  "1. text"
+    const numMatch = line.match(/^(\d+)\.\s+(.+)/)
+    if (numMatch) {
+      if (inBulletList) { html += '</ul>'; inBulletList = false }
+      if (!inNumberedList) {
+        html += '<ol class="space-y-2 mb-4 ml-1">'
+        inNumberedList = true
       }
-      const content = line.substring(1).trim()
-      html += `<li class="text-gray-700">${content}</li>`
+      html += `<li class="flex items-start gap-3">
+        <span class="w-6 h-6 rounded-full bg-primary-100 text-primary-700 text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">${numMatch[1]}</span>
+        <span class="text-gray-700 text-sm leading-relaxed">${boldInline(numMatch[2])}</span>
+      </li>`
+      return
     }
-    // Check if line is a header (bold text with **...**)
-    else if (line.startsWith('**') && line.endsWith('**')) {
-      if (inList) {
-        html += '</ul>'
-        inList = false
+
+    // Section header patterns produced by AI:
+    //   **Header text**       (standard)
+    //   *Header text**        (single start, double end)
+    //   **Header text:**      (with trailing colon)
+    //   *Header text:*        (single star both sides)
+    // Detect: line is ALL bold (no other non-star content outside the stars)
+    const headerMatch = line.match(/^\*{1,2}([^*]{2,}?)\*{0,2}:?\s*$/)
+    if (headerMatch) {
+      const inner = headerMatch[1].replace(/:+$/, '').trim()
+      // Skip if inner text is suspiciously short or is just punctuation
+      if (inner.length > 2) {
+        closeLists()
+        // "Option N" headers get a chip-style badge
+        if (/^option\s*\d/i.test(inner)) {
+          optionCount++
+          html += `<div class="mt-8 mb-3 flex items-center gap-3">
+            <span class="px-3 py-1 bg-primary-600 text-white rounded-full text-xs font-bold uppercase tracking-wide">
+              ${inner}
+            </span>
+            <div class="flex-1 border-t border-gray-200"></div>
+          </div>`
+        } else {
+          // Normal section header
+          html += `<h3 class="text-sm font-bold text-gray-900 uppercase tracking-wide mt-5 mb-2 flex items-center gap-2">
+            <span class="w-1 h-4 bg-primary-500 rounded-full inline-block"></span>
+            ${inner}
+          </h3>`
+        }
+        return
       }
-      const headerText = line.slice(2, -2)
-      html += `<h3 class="section-header">${headerText}</h3>`
     }
+
+    // Bullet  "- text"  "* text"  "• text"
+    // (must NOT be a header-style line already caught above)
+    if (/^[-*•]\s+/.test(line)) {
+      if (inNumberedList) { html += '</ol>'; inNumberedList = false }
+      if (!inBulletList) {
+        html += '<ul class="space-y-2 mb-4 ml-1">'
+        inBulletList = true
+      }
+      const content = line.replace(/^[-*•]\s+/, '')
+      html += `<li class="flex items-start gap-2.5">
+        <span class="mt-2 w-1.5 h-1.5 rounded-full bg-primary-400 shrink-0"></span>
+        <span class="text-gray-700 text-sm leading-relaxed">${boldInline(content)}</span>
+      </li>`
+      return
+    }
+
     // Regular paragraph
-    else {
-      if (inList) {
-        html += '</ul>'
-        inList = false
-      }
-      // Handle bold text within paragraphs - special styling for headers with colons
-      const formatted = line.replace(/\*\*(.*?):\*\*/g, '<span class="inline-header">$1:</span>')
-                           .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      html += `<p class="text-gray-700 mb-2">${formatted}</p>`
+    closeLists()
+
+    // Lines that look like "Key Considerations & Customization:" (plain text pseudo-headers)
+    if (/^[A-Z][^.!?]{5,40}[:\?]$/.test(line)) {
+      html += `<p class="text-sm font-semibold text-gray-800 mt-4 mb-1">${boldInline(line)}</p>`
+      return
     }
+
+    html += `<p class="text-gray-700 text-sm leading-relaxed mb-2">${boldInline(line)}</p>`
   })
 
-  // Close list if still open
-  if (inList) {
-    html += '</ul>'
-  }
-
+  closeLists()
   return html
 }
 
 const formatScreeningAnalysis = (text) => {
   if (!text) return ''
 
+  // Section styling by keyword
+  const getSectionCfg = (title) => {
+    const t = title.toLowerCase()
+    if (t.includes('overall') || t.includes('assessment')) return { icon: '🎯', border: 'border-blue-400',   bg: 'bg-blue-50',   head: 'text-blue-800'   }
+    if (t.includes('strength'))                              return { icon: '💪', border: 'border-green-400',  bg: 'bg-green-50',  head: 'text-green-800'  }
+    if (t.includes('experience') || t.includes('achieve'))  return { icon: '🏆', border: 'border-violet-400', bg: 'bg-violet-50', head: 'text-violet-800' }
+    if (t.includes('skill'))                                 return { icon: '🛠️', border: 'border-indigo-400', bg: 'bg-indigo-50', head: 'text-indigo-800' }
+    if (t.includes('concern') || t.includes('gap'))         return { icon: '⚠️', border: 'border-yellow-400', bg: 'bg-yellow-50', head: 'text-yellow-800' }
+    if (t.includes('cultural') || t.includes('soft'))       return { icon: '🤝', border: 'border-teal-400',   bg: 'bg-teal-50',   head: 'text-teal-800'   }
+    if (t.includes('recommendation'))                        return { icon: '✅', border: 'border-emerald-400',bg: 'bg-emerald-50',head: 'text-emerald-800'}
+    if (t.includes('next') || t.includes('step'))           return { icon: '📋', border: 'border-slate-400',  bg: 'bg-slate-50',  head: 'text-slate-700'  }
+    return                                                          { icon: '📌', border: 'border-primary-300',bg: 'bg-primary-50',head: 'text-primary-800'}
+  }
+
+  // Split into sections using --- dividers
+  const sections = text.split(/\n---+\n?/)
   let html = ''
-  const lines = text.split('\n')
-  let inList = false
 
-  lines.forEach(line => {
-    line = line.trim()
+  sections.forEach(section => {
+    const lines = section.trim().split('\n')
+    if (!lines.length) return
 
-    if (!line) {
-      if (inList) {
-        html += '</ul>'
-        inList = false
+    // Find the section title: ### **Title** or ## Title or **Title**
+    let titleLine = ''
+    let contentLines = []
+    let foundTitle = false
+
+    for (let i = 0; i < lines.length; i++) {
+      const l = lines[i].trim()
+      if (!foundTitle) {
+        // Skip the top-level ## title (report title)
+        if (/^##\s+[^#]/.test(l)) { foundTitle = true; continue }
+        // ### **Title** or ### Title
+        const h3Match = l.match(/^###\s+\*{0,2}(.*?)\*{0,2}:?\s*$/)
+        if (h3Match) { titleLine = h3Match[1].replace(/\*{1,2}/g, '').replace(/:$/,'').trim(); foundTitle = true; continue }
+        // **Title** alone on a line
+        const boldMatch = l.match(/^\*{1,2}([^*]{3,}?)\*{1,2}:?\s*$/)
+        if (boldMatch) { titleLine = boldMatch[1].replace(/:$/,'').trim(); foundTitle = true; continue }
       }
-      html += '<br>'
-      return
+      contentLines.push(lines[i])
     }
 
-    // Check if line is a main header (starts with **)
-    if (line.startsWith('**') && line.endsWith('**')) {
-      if (inList) {
-        html += '</ul>'
-        inList = false
+    if (!titleLine && !contentLines.filter(l => l.trim()).length) return
+
+    const cfg = titleLine ? getSectionCfg(titleLine) : null
+
+    if (cfg && titleLine) {
+      html += `<div class="rounded-xl border-l-4 ${cfg.border} ${cfg.bg} overflow-hidden mb-1">`
+      html += `<div class="flex items-center gap-2 px-4 py-3 border-b border-white/60">
+        <span class="text-base">${cfg.icon}</span>
+        <h3 class="font-bold text-sm uppercase tracking-wide ${cfg.head}">${titleLine}</h3>
+      </div>`
+      html += `<div class="px-4 py-3">${renderSectionContent(contentLines)}</div>`
+      html += '</div>'
+    } else {
+      // No title (intro paragraph or report title block)
+      const inner = renderSectionContent(contentLines)
+      if (inner.trim()) {
+        html += `<div class="bg-white rounded-xl border border-gray-200 px-4 py-3 mb-1">${inner}</div>`
       }
-      const headerText = line.slice(2, -2).replace(/:/g, '')
-
-      // Color code based on header content
-      let colorClass = 'text-blue-600 bg-blue-50 border-blue-300'
-      if (headerText.toLowerCase().includes('strength')) {
-        colorClass = 'text-green-600 bg-green-50 border-green-300'
-      } else if (headerText.toLowerCase().includes('concern') || headerText.toLowerCase().includes('gap')) {
-        colorClass = 'text-yellow-600 bg-yellow-50 border-yellow-300'
-      } else if (headerText.toLowerCase().includes('recommendation')) {
-        colorClass = 'text-purple-600 bg-purple-50 border-purple-300'
-      } else if (headerText.toLowerCase().includes('skill')) {
-        colorClass = 'text-indigo-600 bg-indigo-50 border-indigo-300'
-      }
-
-      html += `<h3 class="text-xl font-bold ${colorClass} px-4 py-3 rounded-lg border-l-4 mb-3 mt-5">${headerText}</h3>`
-    }
-    // Check if line is a bullet point
-    else if (line.startsWith('*') || line.startsWith('-') || line.startsWith('•') || line.startsWith('✅') || line.startsWith('⚠️')) {
-      if (!inList) {
-        html += '<ul class="list-none ml-2 space-y-2 mb-4">'
-        inList = true
-      }
-      const content = line.substring(1).trim()
-
-      // Add appropriate icon based on content
-      let icon = '•'
-      let iconColor = 'text-gray-500'
-      if (line.startsWith('✅')) {
-        icon = '✅'
-        iconColor = 'text-green-600'
-      } else if (line.startsWith('⚠️')) {
-        icon = '⚠️'
-        iconColor = 'text-orange-600'
-      } else if (content.toLowerCase().includes('strength') || content.toLowerCase().includes('positive')) {
-        icon = '✓'
-        iconColor = 'text-green-600'
-      } else if (content.toLowerCase().includes('concern') || content.toLowerCase().includes('gap')) {
-        icon = '⚠'
-        iconColor = 'text-yellow-600'
-      }
-
-      html += `<li class="flex items-start"><span class="${iconColor} font-bold mr-2">${icon}</span><span class="text-gray-700 flex-1">${content}</span></li>`
-    }
-    // Regular paragraph
-    else {
-      if (inList) {
-        html += '</ul>'
-        inList = false
-      }
-
-      // Handle bold text and special formatting
-      let formatted = line
-        .replace(/\*\*(.*?):\*\*/g, '<strong class="text-gray-900">$1:</strong>')
-        .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-gray-900">$1</strong>')
-        .replace(/(Score:?\s*\d+\/100)/gi, '<span class="px-3 py-1 bg-primary-100 text-primary-800 rounded-full font-bold text-lg">$1</span>')
-        .replace(/(Strong Yes|Yes|Maybe|No)/g, function(match) {
-          let badgeClass = 'bg-gray-100 text-gray-800'
-          if (match === 'Strong Yes') badgeClass = 'bg-green-100 text-green-800'
-          else if (match === 'Yes') badgeClass = 'bg-green-100 text-green-700'
-          else if (match === 'Maybe') badgeClass = 'bg-yellow-100 text-yellow-800'
-          else if (match === 'No') badgeClass = 'bg-red-100 text-red-800'
-          return `<span class="px-3 py-1 ${badgeClass} rounded-full font-bold">${match}</span>`
-        })
-
-      html += `<p class="text-gray-800 mb-3 leading-relaxed">${formatted}</p>`
     }
   })
-
-  if (inList) {
-    html += '</ul>'
-  }
 
   return html
 }
 
-const copyToClipboard = (text) => {
-  navigator.clipboard.writeText(text).then(() => {
-    alert('Copied to clipboard!')
-  }).catch(err => {
-    alert('Failed to copy: ' + err.message)
+// Render the content lines within a section
+const renderSectionContent = (lines) => {
+  let html = ''
+  let inBullet = false
+  let inNumbered = false
+  let subSection = ''
+
+  const closeLists = () => {
+    if (inBullet) { html += '</ul>'; inBullet = false }
+    if (inNumbered) { html += '</ol>'; inNumbered = false }
+  }
+
+  lines.forEach(raw => {
+    const line = raw.trim()
+    if (!line) { closeLists(); return }
+
+    // Sub-section headers: #### ✅ ... or #### ⚠️ ...
+    const subH = line.match(/^####\s+(.+)/)
+    if (subH) {
+      closeLists()
+      const stxt = subH[1].trim()
+      let subCls = 'text-gray-700 bg-white/60 border-gray-200'
+      if (stxt.includes('✅') || stxt.toLowerCase().includes('met') || stxt.toLowerCase().includes('required')) subCls = 'text-green-700 bg-green-50 border-green-200'
+      else if (stxt.includes('⚠️') || stxt.toLowerCase().includes('gap') || stxt.toLowerCase().includes('missing')) subCls = 'text-yellow-700 bg-yellow-50 border-yellow-200'
+      html += `<p class="text-xs font-bold uppercase tracking-wide ${subCls} border rounded-lg px-3 py-1.5 mb-2 mt-3 inline-flex items-center gap-1">${stxt}</p><br>`
+      return
+    }
+
+    // Numbered list
+    const numMatch = line.match(/^(\d+)\.\s+(.+)/)
+    if (numMatch) {
+      if (inBullet) { html += '</ul>'; inBullet = false }
+      if (!inNumbered) { html += '<ol class="space-y-2 mt-2 mb-1">'; inNumbered = true }
+      html += `<li class="flex items-start gap-2.5">
+        <span class="w-5 h-5 rounded-full bg-white border border-current text-xs font-bold flex items-center justify-center shrink-0 mt-0.5 opacity-70">${numMatch[1]}</span>
+        <span class="text-sm leading-relaxed">${boldInline(numMatch[2])}</span>
+      </li>`
+      return
+    }
+
+    // Bullet: *, -, •  (leading spaces ok)
+    if (/^\s*[-*•]\s+/.test(raw)) {
+      if (inNumbered) { html += '</ol>'; inNumbered = false }
+      if (!inBullet) { html += '<ul class="space-y-2 mt-2 mb-1">'; inBullet = true }
+      const content = line.replace(/^[-*•]\s+/, '')
+      html += `<li class="flex items-start gap-2">
+        <span class="mt-1.5 w-1.5 h-1.5 rounded-full bg-current opacity-50 shrink-0"></span>
+        <span class="text-sm leading-relaxed">${boldInline(content)}</span>
+      </li>`
+      return
+    }
+
+    // Regular paragraph
+    closeLists()
+    let fmt = boldInline(line)
+      .replace(/(Score:?\s*\d+\/100)/gi, '<span class="px-2 py-0.5 bg-white/80 border border-current/30 rounded-full font-bold text-sm">$1</span>')
+      .replace(/\[?(Strong\s+Yes|Yes|Maybe|No)\]?(?=\s|$)/g, (m, rec) => {
+        const r = rec.trim()
+        const cls = r === 'Strong Yes' ? 'bg-green-500' : r === 'Yes' ? 'bg-green-400' : r === 'Maybe' ? 'bg-yellow-500' : 'bg-red-500'
+        return `<span class="inline-block px-3 py-0.5 ${cls} text-white rounded-full font-bold text-sm">${r}</span>`
+      })
+    html += `<p class="text-sm leading-relaxed mb-1.5">${fmt}</p>`
   })
+
+  closeLists()
+  return html
 }
 </script>
 
 
 <style scoped>
-.prose {
-  font-size: 1rem;
-  line-height: 1.75;
+.label-sm {
+  @apply block text-sm font-medium text-gray-700 mb-1.5;
 }
 
-.prose ul {
-  margin-top: 0.5rem;
-  margin-bottom: 1rem;
-}
+/* Toast animation */
+.toast-enter-active { transition: all 0.3s ease; }
+.toast-leave-active { transition: all 0.3s ease; }
+.toast-enter-from { opacity: 0; transform: translateX(1rem); }
+.toast-leave-to   { opacity: 0; transform: translateX(1rem); }
 
-.prose p {
-  margin-bottom: 0.5rem;
-}
+/* Screening analysis */
+.screening-analysis { font-size: 0.9rem; line-height: 1.7; }
+.screening-analysis ul, .screening-analysis ol { list-style: none; margin: 0; padding: 0; }
+.screening-analysis li + li { margin-top: 0.4rem; }
 
-.prose strong {
-  font-weight: 600;
-  color: #1f2937;
-}
-
-/* Section headers - bold standalone headers */
-.prose :deep(.section-header) {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #2563eb;
-  margin-top: 1.5rem;
-  margin-bottom: 0.75rem;
-  padding-left: 0.75rem;
-  border-left: 4px solid #3b82f6;
-  background: linear-gradient(to right, #eff6ff, transparent);
-  padding-top: 0.5rem;
-  padding-bottom: 0.5rem;
-  border-radius: 0.25rem;
-}
-
-/* Inline headers - bold text with colons inside paragraphs */
-.prose :deep(.inline-header) {
-  font-weight: 700;
-  color: #1d4ed8;
-  font-size: 1.05rem;
-  background: linear-gradient(to right, #dbeafe, transparent);
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.25rem;
-}
-
-/* Screening Analysis specific styles */
-.screening-analysis {
-  font-size: 1.05rem;
-  line-height: 1.7;
-}
-
-.screening-analysis h3 {
-  font-family: system-ui, -apple-system, sans-serif;
-  letter-spacing: -0.025em;
-}
-
-.screening-analysis ul {
-  margin-top: 0.75rem;
-  margin-bottom: 1rem;
-}
-
-.screening-analysis li {
-  padding: 0.5rem 0;
-}
-
-.screening-analysis p {
-  line-height: 1.8;
-}
-
-.screening-analysis strong {
-  font-weight: 600;
-}
+/* Job description output */
+.job-desc-output { font-family: inherit; }
+.job-desc-output h3 { letter-spacing: 0.05em; }
+.job-desc-output ul, .job-desc-output ol { margin: 0; padding: 0; list-style: none; }
 </style>

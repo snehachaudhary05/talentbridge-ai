@@ -20,7 +20,7 @@ const authStore = useAuthStore()
 app.config.globalProperties.$authStore = authStore
 authStore.initializeAuth()
 
-// Add axios interceptor to ensure Authorization header is always included
+// ── Request interceptor: attach Authorization header ──────────────────────────
 axios.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token')
@@ -29,20 +29,78 @@ axios.interceptors.request.use(
     }
     return config
   },
-  (error) => {
-    return Promise.reject(error)
-  }
+  (error) => Promise.reject(error)
 )
 
-// Add axios response interceptor to handle 401 errors
+// ── Response interceptor: auto-refresh on 401 ─────────────────────────────────
+let isRefreshing = false
+let failedQueue = []   // requests waiting while token is being refreshed
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach(({ resolve, reject }) => {
+    if (error) reject(error)
+    else resolve(token)
+  })
+  failedQueue = []
+}
+
 axios.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // Token might be invalid or expired
-      console.error('Authentication error - token might be invalid or expired')
-      console.error('Error details:', error.response?.data)
+  async (error) => {
+    const originalRequest = error.config
+
+    // Only handle 401 that hasn't already been retried
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      const refreshToken = localStorage.getItem('refreshToken')
+
+      // No refresh token → log out immediately
+      if (!refreshToken) {
+        authStore.logout()
+        router.push('/login')
+        return Promise.reject(error)
+      }
+
+      // If a refresh is already in progress, queue this request
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject })
+        })
+          .then((token) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`
+            return axios(originalRequest)
+          })
+          .catch((err) => Promise.reject(err))
+      }
+
+      // Start refreshing
+      originalRequest._retry = true
+      isRefreshing = true
+
+      try {
+        const res = await axios.post('/token/refresh/', { refresh: refreshToken })
+        const newToken = res.data.access
+
+        // Update stored token
+        localStorage.setItem('token', newToken)
+        authStore.token = newToken
+        axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`
+
+        processQueue(null, newToken)
+
+        // Retry the original request with the new token
+        originalRequest.headers.Authorization = `Bearer ${newToken}`
+        return axios(originalRequest)
+      } catch (refreshError) {
+        // Refresh failed → session is completely expired
+        processQueue(refreshError, null)
+        authStore.logout()
+        router.push('/login')
+        return Promise.reject(refreshError)
+      } finally {
+        isRefreshing = false
+      }
     }
+
     return Promise.reject(error)
   }
 )

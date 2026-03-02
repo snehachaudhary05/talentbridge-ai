@@ -6,7 +6,7 @@ from typing import Dict, List
 from django.db.models import Q, Count
 
 from jobs.models import Job, Application
-from ..utils.ai_client import get_ai_client
+from ..utils.ai_client import get_ai_client, get_gemini_client
 from ..utils.prompt_templates import get_analysis_prompt, get_system_prompt
 
 
@@ -15,7 +15,8 @@ class RecruiterHandler:
 
     def __init__(self, user):
         self.user = user
-        self.ai_client = get_ai_client()
+        self.ai_client = get_ai_client()          # OpenRouter — general tasks
+        self.gemini_client = get_gemini_client()  # Gemini — candidate screening
 
     def generate_job_description(self, job_data: Dict) -> str:
         """
@@ -185,7 +186,8 @@ Use clear headers, bullet points, and emojis for visual appeal. Be thorough and 
             {"role": "user", "content": prompt}
         ]
 
-        response = self.ai_client.generate_response(
+        # Use Gemini for candidate screening — handles large resumes with 1M token context
+        response = self.gemini_client.generate_response(
             messages=messages,
             system_prompt=system_prompt
         )

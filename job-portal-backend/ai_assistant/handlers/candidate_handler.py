@@ -6,7 +6,7 @@ from typing import Dict, List
 from django.db.models import Q
 
 from jobs.models import Job, Application
-from ..utils.ai_client import get_ai_client
+from ..utils.ai_client import get_ai_client, get_gemini_client
 from ..utils.prompt_templates import get_analysis_prompt, get_system_prompt
 
 
@@ -15,7 +15,8 @@ class CandidateHandler:
 
     def __init__(self, user):
         self.user = user
-        self.ai_client = get_ai_client()
+        self.ai_client = get_ai_client()          # OpenRouter — general tasks
+        self.gemini_client = get_gemini_client()  # Gemini — ATS score & resume analysis
 
     def analyze_resume(self, resume_text: str) -> Dict:
         """
@@ -33,7 +34,8 @@ class CandidateHandler:
             {"role": "user", "content": resume_text}
         ]
 
-        response = self.ai_client.generate_response(
+        # Use Gemini for ATS analysis — 1M token context handles any resume size
+        response = self.gemini_client.generate_response(
             messages=messages,
             system_prompt=system_prompt
         )
