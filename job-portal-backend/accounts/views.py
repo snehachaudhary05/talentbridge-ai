@@ -1,3 +1,4 @@
+import logging
 from rest_framework import generics, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
@@ -13,6 +14,8 @@ from .models import User, CandidateProfile, OTPVerification, generate_otp
 from .serializers import RegisterSerializer, CandidateProfileSerializer, CustomTokenObtainPairSerializer
 from .permissions import IsCandidate
 from notifications.utils.email_service import email_service
+
+logger = logging.getLogger(__name__)
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -41,7 +44,10 @@ class RegisterView(generics.CreateAPIView):
             purpose='registration',
             expires_at=timezone.now() + timedelta(minutes=10)
         )
-        email_service.send_otp_email(user, otp_code, 'registration')
+        logger.info(f"Sending registration OTP to {user.email}")
+        sent = email_service.send_otp_email(user, otp_code, 'registration')
+        if not sent:
+            logger.error(f"Failed to send registration OTP to {user.email}")
 
         return Response(
             {'message': 'Registration successful. Please check your email for the OTP to verify your account.'},
@@ -106,7 +112,14 @@ class ResendOTPView(APIView):
             purpose=purpose,
             expires_at=timezone.now() + timedelta(minutes=10)
         )
-        email_service.send_otp_email(user, otp_code, purpose)
+        logger.info(f"Resending {purpose} OTP to {user.email}")
+        sent = email_service.send_otp_email(user, otp_code, purpose)
+        if not sent:
+            logger.error(f"Failed to resend {purpose} OTP to {user.email}")
+            return Response(
+                {'error': 'Failed to send OTP email. Please check email configuration.'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
         return Response({'message': 'OTP resent to your email.'})
 
@@ -139,7 +152,14 @@ class RequestLoginOTPView(APIView):
             purpose='login',
             expires_at=timezone.now() + timedelta(minutes=10)
         )
-        email_service.send_otp_email(user, otp_code, 'login')
+        logger.info(f"Sending login OTP to {user.email}")
+        sent = email_service.send_otp_email(user, otp_code, 'login')
+        if not sent:
+            logger.error(f"Failed to send login OTP email to {user.email}")
+            return Response(
+                {'error': 'Failed to send OTP email. Please check email configuration.'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
         return Response({'message': 'OTP sent to your email.'})
 
