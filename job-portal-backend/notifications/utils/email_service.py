@@ -1,32 +1,32 @@
 import logging
+import resend
 from django.conf import settings
-from django.core.mail import EmailMultiAlternatives
 
 logger = logging.getLogger(__name__)
 
 
 class EmailService:
     """
-    Email service using Django's built-in Gmail SMTP backend.
+    Email service using Resend API (works on cloud servers like Render).
     """
 
     def send_email(self, to_email, subject, html_content):
-        from_email = settings.EMAIL_HOST_USER
+        api_key = getattr(settings, 'RESEND_API_KEY', '')
         from_name = getattr(settings, 'EMAIL_FROM_NAME', 'TalentBridge AI')
 
-        if not from_email:
-            logger.warning("EMAIL_HOST_USER not configured. Email not sent.")
+        if not api_key:
+            logger.warning("RESEND_API_KEY not configured. Email not sent.")
             return False
 
         try:
-            msg = EmailMultiAlternatives(
-                subject=subject,
-                body='',
-                from_email=f"{from_name} <{from_email}>",
-                to=[to_email],
-            )
-            msg.attach_alternative(html_content, "text/html")
-            msg.send()
+            resend.api_key = api_key
+            params = {
+                "from": f"{from_name} <onboarding@resend.dev>",
+                "to": [to_email],
+                "subject": subject,
+                "html": html_content,
+            }
+            resend.Emails.send(params)
             logger.info(f"Email sent successfully to {to_email}")
             return True
         except Exception as e:
@@ -41,6 +41,7 @@ class EmailService:
             subject = "Your Login OTP - TalentBridge AI"
             action_text = "log in to your account"
 
+        from_name = getattr(settings, 'EMAIL_FROM_NAME', 'TalentBridge AI')
         html_content = f"""
         <!DOCTYPE html>
         <html>
@@ -69,7 +70,7 @@ class EmailService:
                     </div>
                     <p>If you did not request this, please ignore this email.</p>
                 </div>
-                <div class="footer"><p>© 2024 {self.from_name}. All rights reserved.</p></div>
+                <div class="footer"><p>© 2024 {from_name}. All rights reserved.</p></div>
             </div>
         </body>
         </html>
@@ -78,6 +79,7 @@ class EmailService:
 
     def send_application_submitted_email(self, user, job_title, application_id):
         subject = f"Application Submitted - {job_title}"
+        from_name = getattr(settings, 'EMAIL_FROM_NAME', 'TalentBridge AI')
         html_content = f"""
         <!DOCTYPE html><html><head><style>
             body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
@@ -98,7 +100,7 @@ class EmailService:
                     <a href="{settings.FRONTEND_URL}/dashboard" class="button">View Application Status</a>
                     <p>Good luck! 🚀</p>
                 </div>
-                <div class="footer"><p>© 2024 {self.from_name}. All rights reserved.</p></div>
+                <div class="footer"><p>© 2024 {from_name}. All rights reserved.</p></div>
             </div>
         </body></html>
         """
@@ -106,6 +108,7 @@ class EmailService:
 
     def send_application_status_changed_email(self, user, job_title, old_status, new_status, application_id):
         subject = f"Application Status Update - {job_title}"
+        from_name = getattr(settings, 'EMAIL_FROM_NAME', 'TalentBridge AI')
         status_emoji = {
             'Under Review': '👀', 'Shortlisted': '⭐', 'OA Round': '📝',
             'Tech Round': '💻', 'HR Round': '🤝', 'Offer Received': '🎉',
@@ -133,7 +136,7 @@ class EmailService:
                     <div class="status-box"><p><strong>New Status:</strong> {new_status}</p></div>
                     <a href="{settings.FRONTEND_URL}/dashboard" class="button">View Details</a>
                 </div>
-                <div class="footer"><p>© 2024 {self.from_name}. All rights reserved.</p></div>
+                <div class="footer"><p>© 2024 {from_name}. All rights reserved.</p></div>
             </div>
         </body></html>
         """
@@ -141,6 +144,7 @@ class EmailService:
 
     def send_new_application_email(self, recruiter, candidate_name, job_title, application_id):
         subject = f"New Application Received - {job_title}"
+        from_name = getattr(settings, 'EMAIL_FROM_NAME', 'TalentBridge AI')
         html_content = f"""
         <!DOCTYPE html><html><head><style>
             body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
@@ -161,7 +165,7 @@ class EmailService:
                     <div class="candidate-box"><p><strong>Candidate:</strong> {candidate_name}</p></div>
                     <a href="{settings.FRONTEND_URL}/dashboard" class="button">Review Application</a>
                 </div>
-                <div class="footer"><p>© 2024 {self.from_name}. All rights reserved.</p></div>
+                <div class="footer"><p>© 2024 {from_name}. All rights reserved.</p></div>
             </div>
         </body></html>
         """
@@ -172,6 +176,7 @@ class EmailService:
         type_display = interview_type.replace('_', ' ').title()
         formatted_date = interview_datetime.strftime("%A, %B %d, %Y")
         formatted_time = interview_datetime.strftime("%I:%M %p")
+        from_name = getattr(settings, 'EMAIL_FROM_NAME', 'TalentBridge AI')
         subject = f"Interview Scheduled - {job_title}"
         html_content = f"""
         <!DOCTYPE html><html><head><style>
@@ -200,7 +205,7 @@ class EmailService:
                     </div>
                     <a href="{settings.FRONTEND_URL}/dashboard" class="button">View Details</a>
                 </div>
-                <div class="footer"><p>© 2024 {self.from_name}. All rights reserved.</p></div>
+                <div class="footer"><p>© 2024 {from_name}. All rights reserved.</p></div>
             </div>
         </body></html>
         """
@@ -208,6 +213,7 @@ class EmailService:
 
     def send_interview_cancelled_email(self, candidate, job_title, interview_datetime):
         formatted_date = interview_datetime.strftime("%A, %B %d, %Y at %I:%M %p")
+        from_name = getattr(settings, 'EMAIL_FROM_NAME', 'TalentBridge AI')
         subject = f"Interview Cancelled - {job_title}"
         html_content = f"""
         <!DOCTYPE html><html><head><style>
@@ -230,7 +236,7 @@ class EmailService:
                     </div>
                     <p>The recruiter will contact you if they wish to reschedule.</p>
                 </div>
-                <div class="footer"><p>© 2024 {self.from_name}. All rights reserved.</p></div>
+                <div class="footer"><p>© 2024 {from_name}. All rights reserved.</p></div>
             </div>
         </body></html>
         """
@@ -238,6 +244,7 @@ class EmailService:
 
     def send_job_match_email(self, user, job_title, company, job_id):
         subject = f"New Job Match: {job_title}"
+        from_name = getattr(settings, 'EMAIL_FROM_NAME', 'TalentBridge AI')
         html_content = f"""
         <!DOCTYPE html><html><head><style>
             body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
@@ -261,7 +268,7 @@ class EmailService:
                     </div>
                     <a href="{settings.FRONTEND_URL}/jobs/{job_id}" class="button">View Job</a>
                 </div>
-                <div class="footer"><p>© 2024 {self.from_name}. All rights reserved.</p></div>
+                <div class="footer"><p>© 2024 {from_name}. All rights reserved.</p></div>
             </div>
         </body></html>
         """

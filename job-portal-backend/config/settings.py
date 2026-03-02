@@ -137,6 +137,7 @@ EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 EMAIL_FROM_NAME = os.getenv('EMAIL_FROM_NAME', 'TalentBridge AI')
 FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:5173')
+RESEND_API_KEY = os.getenv('RESEND_API_KEY', '')
 
 # ✅ Logging
 LOGGING = {

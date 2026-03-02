@@ -18,6 +18,7 @@ dj-database-url>=2.1.0   # Database URL configuration
 # Utilities
 python-dotenv>=1.0.0     # Environment variable management
 requests>=2.31.0         # HTTP requests
+resend>=2.0.0            # Transactional email API
 
 # Resume/Document Parsing
 PyPDF2>=3.0.0            # PDF text extraction
