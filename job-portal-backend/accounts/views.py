@@ -7,6 +7,7 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.conf import settings
 from django.http import FileResponse
 from django.utils import timezone
 from datetime import timedelta
@@ -130,16 +131,20 @@ class RequestLoginOTPView(APIView):
 
     def post(self, request):
         email = request.data.get('email', '').strip()
+        logger.info(f"[OTP REQUEST] Received login OTP request for: {email}")
 
         if not email:
             return Response({'error': 'Email is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             user = User.objects.get(email=email)
+            logger.info(f"[OTP REQUEST] User found: {email}, is_verified={user.is_verified}")
         except User.DoesNotExist:
+            logger.warning(f"[OTP REQUEST] No user found with email: {email}")
             return Response({'error': 'No account found with this email.'}, status=status.HTTP_404_NOT_FOUND)
 
         if not user.is_verified:
+            logger.warning(f"[OTP REQUEST] User {email} is not verified")
             return Response(
                 {'error': 'Email not verified. Please complete registration first.'},
                 status=status.HTTP_400_BAD_REQUEST
@@ -152,15 +157,16 @@ class RequestLoginOTPView(APIView):
             purpose='login',
             expires_at=timezone.now() + timedelta(minutes=10)
         )
-        logger.info(f"Sending login OTP to {user.email}")
+        logger.info(f"[OTP REQUEST] Sending login OTP email to {user.email}, EMAIL_HOST_USER={bool(settings.EMAIL_HOST_USER)}")
         sent = email_service.send_otp_email(user, otp_code, 'login')
         if not sent:
-            logger.error(f"Failed to send login OTP email to {user.email}")
+            logger.error(f"[OTP REQUEST] Failed to send OTP email to {user.email}")
             return Response(
                 {'error': 'Failed to send OTP email. Please check email configuration.'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
+        logger.info(f"[OTP REQUEST] OTP sent successfully to {user.email}")
         return Response({'message': 'OTP sent to your email.'})
 
 

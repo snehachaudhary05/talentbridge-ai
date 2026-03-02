@@ -10,12 +10,11 @@ class EmailService:
     Email service using Django's built-in Gmail SMTP backend.
     """
 
-    def __init__(self):
-        self.from_email = settings.EMAIL_HOST_USER
-        self.from_name = settings.EMAIL_FROM_NAME
-
     def send_email(self, to_email, subject, html_content):
-        if not self.from_email:
+        from_email = settings.EMAIL_HOST_USER
+        from_name = getattr(settings, 'EMAIL_FROM_NAME', 'TalentBridge AI')
+
+        if not from_email:
             logger.warning("EMAIL_HOST_USER not configured. Email not sent.")
             return False
 
@@ -23,7 +22,7 @@ class EmailService:
             msg = EmailMultiAlternatives(
                 subject=subject,
                 body='',
-                from_email=f"{self.from_name} <{self.from_email}>",
+                from_email=f"{from_name} <{from_email}>",
                 to=[to_email],
             )
             msg.attach_alternative(html_content, "text/html")
